@@ -22,6 +22,7 @@ let buttonTemplate = {
 const buttons = {
     ScrapeForYoutube: new columnButton(buttonTemplate, 0, "Last List Link", function () {
         let url = utils.InputBox("Enter the URL:", "Download", "");
+
         // create an index of the library
         let indexedLibrary = [];
         fb.GetLibraryItems().Convert().forEach((item) => {
@@ -40,111 +41,123 @@ const buttons = {
         // create playlist
         let playlist = plman.FindOrCreatePlaylist("LastLinkList", false);
         plman.ClearPlaylist(playlist);
+        let itemsToAdd = [];
 
+        let promises = [];
         for (let i = 1; i <= 1; i++) {
-            console.log("Scraping page " + i);
-            let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", url, true);
-            xmlhttp.onreadystatechange = function () {
-                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    console.log("Scraping for youtube links from page " + i + " ...");
-                    let content = xmlhttp.responseText;
+            promises.push(new Promise((resolve, reject) => {
+                let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                xmlhttp.open("GET", url + "?page=" + i, true);
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        console.log("Scraping for youtube links from page " + i + " ...");
+                        let content = xmlhttp.responseText;
 
-                    // find all youtube links with title and artist
-                    let itemsToAdd = [];
-                    let matches = [...content.matchAll(regexElement)];
-                    console.log(matches.length + " matches found");
-                    matches.every((match) => {
-                        // scrape youtube id
-                        let youtube = match[0].match(regexYoutube);
-                        youtube = youtube[0]
-                            .replace("data-youtube-id=\"", "")
-                            .replace("\"", "");
-                        // scrape title
-                        let title = match[0].match(regexTitle);
-                        title = cleanString(decodeURI(title[0]
-                            .replace("data-track-name=\"", "")
-                            .replace("\"", "")
-                        ));
-                        // scrape artist
-                        let artist = match[0].match(regexArtist);
-                        artist = cleanString(decodeURI(artist[0]
-                            .replace("data-artist-name=\"", "")
-                            .replace("\"", "")
-                        ));
-                        // TODO what if only youtube doesn't exist but have track in library?
-                        // continue if any of the values is empty
-                        if (!youtube || !title || !artist) {
+                        // find all youtube links with title and artist
+                        let matches = [...content.matchAll(regexElement)];
+                        console.log(matches.length + " matches found");
+                        matches.every((match) => {
+                            // scrape youtube id
+                            let youtube = match[0].match(regexYoutube);
+                            youtube = youtube[0]
+                                .replace("data-youtube-id=\"", "")
+                                .replace("\"", "");
+                            // scrape title
+                            let title = match[0].match(regexTitle);
+                            title = cleanString(decodeURI(title[0]
+                                .replace("data-track-name=\"", "")
+                                .replace("\"", "")
+                            ));
+                            // scrape artist
+                            let artist = match[0].match(regexArtist);
+                            artist = cleanString(decodeURI(artist[0]
+                                .replace("data-artist-name=\"", "")
+                                .replace("\"", "")
+                            ));
+                            // TODO what if only youtube doesn't exist but have track in library?
+                            // continue if any of the values is empty
+                            if (!youtube || !title || !artist) {
+                                return true;
+                            }
+                            // add to items to add
+                            itemsToAdd.push({
+                                youtube: youtube,
+                                title: title,
+                                artist: artist,
+                                file: indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`]
+                            });
+
                             return true;
-                        }
-                        // add to items to add
-                        itemsToAdd.push({
-                            youtube: youtube,
-                            title: title,
-                            artist: artist,
-                            file: indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`]
                         });
-
-                        return true;
-                    });
-                    // remove duplicates
-                    itemsToAdd = [...new Set(itemsToAdd)];
-                    // check if there are items to add
-                    if (itemsToAdd.length == 0) {
-                        console.log("No items to add");
-                        return false;
+                        // add items to playlist
+                        resolve();
                     }
+                };
 
-                    let lastType = 'youtube';
-                    let queue = [];
-                    // add items to playlist
-                    itemsToAdd.forEach((itemToAdd) => {
-                        let type = itemToAdd.file ? "local" : "youtube";
-                        // submit queue
-                        if (type != lastType) {
-                            if (lastType == "youtube") {
-                                plman.AddLocations(playlist, queue);
-                                queue = new FbMetadbHandleList();
-                            }
-                            if (lastType == "local") {
-                                plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
-                                queue = [];
-                            }
-
-                            lastType = type;
-                        }
-
-                        if (type == "youtube") {
-                            queue.push(`3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`);
-                        }
-                        if (type == "local") {
-                            queue.Add(itemToAdd.file);
-                        }
-                    });
-                    if (lastType == "youtube") {
-                        plman.AddLocations(playlist, queue);
-
-                    }
-                    if (lastType == "local") {
-                        plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
-                    }
-
-                    // activate playlist
-                    plman.ActivePlaylist = playlist;
-                }
-            };
-
-            setTimeout(function () {
-                xmlhttp.send();
-            }, 5000 * (i - 1));
+                setTimeout(function () {
+                    xmlhttp.send();
+                }, 5000 * (i - 1));
+            }));
         }
 
+        Promise.all(promises).then(() => {
+            addItemsToPlaylist(itemsToAdd, playlist);
+            console.log("Last List Link finished");
+        });
+
+        return;
     }),
 };
 
 let g_down = false;
 let cur_btn = null;
 
+function addItemsToPlaylist(items, playlist) {
+    // remove duplicates
+    items = [...new Set(items)];
+    // check if there are items to add
+    if (items.length == 0) {
+        console.log("No items to add");
+        return false;
+    }
+
+    let lastType = 'youtube';
+    let queue = [];
+    // add items to playlist
+    items.forEach((itemToAdd) => {
+        let type = itemToAdd.file ? "local" : "youtube";
+        // submit queue
+        if (type != lastType) {
+            if (lastType == "youtube") {
+                plman.AddLocations(playlist, queue);
+                queue = new FbMetadbHandleList();
+            }
+            if (lastType == "local") {
+                plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
+                queue = [];
+            }
+
+            lastType = type;
+        }
+
+        if (type == "youtube") {
+            queue.push(`3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`);
+        }
+        if (type == "local") {
+            queue.Add(itemToAdd.file);
+        }
+    });
+    if (lastType == "youtube") {
+        plman.AddLocations(playlist, queue);
+
+    }
+    if (lastType == "local") {
+        plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
+    }
+
+    // activate playlist
+    plman.ActivePlaylist = playlist;
+}
 
 function columnButton(buttonTemplate, row, text, fonClick, state) {
     return new SimpleButton(
