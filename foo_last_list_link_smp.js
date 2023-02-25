@@ -129,7 +129,7 @@ const buttons = {
 
             setTimeout(function () {
                 xmlhttp.send();
-            }, 5000 * i);
+            }, 5000 * (i - 1));
         }
 
     }),
