@@ -102,6 +102,8 @@ const buttons = {
 
         Promise.all(promises).then(() => {
             addItemsToPlaylist(itemsToAdd, playlist);
+            // activate playlist
+            plman.ActivePlaylist = playlist;
             console.log("Last List Link finished");
         });
 
@@ -154,9 +156,6 @@ function addItemsToPlaylist(items, playlist) {
     if (lastType == "local") {
         plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
     }
-
-    // activate playlist
-    plman.ActivePlaylist = playlist;
 }
 
 function columnButton(buttonTemplate, row, text, fonClick, state) {
