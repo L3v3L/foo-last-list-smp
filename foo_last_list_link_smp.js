@@ -58,8 +58,8 @@ const buttons = {
                         // scrape youtube id
                         let youtube = match[0].match(regexYoutube);
                         youtube = youtube[0]
-                        .replace("data-youtube-id=\"", "")
-                        .replace("\"", "");
+                            .replace("data-youtube-id=\"", "")
+                            .replace("\"", "");
                         // scrape title
                         let title = match[0].match(regexTitle);
                         title = cleanString(decodeURI(title[0]
@@ -71,7 +71,7 @@ const buttons = {
                         artist = cleanString(decodeURI(artist[0]
                             .replace("data-artist-name=\"", "")
                             .replace("\"", "")
-                            ));
+                        ));
                         // TODO what if only youtube doesn't exist but have track in library?
                         // continue if any of the values is empty
                         if (!youtube || !title || !artist) {
@@ -121,6 +121,13 @@ const buttons = {
                             queue.Add(itemToAdd.file);
                         }
                     });
+                    if (lastType == "youtube") {
+                        plman.AddLocations(playlist, queue);
+
+                    }
+                    if (lastType == "local") {
+                        plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
+                    }
 
                     // activate playlist
                     plman.ActivePlaylist = playlist;
@@ -282,14 +289,14 @@ function on_mouse_lbtn_up(x, y) {
 
 function cleanString(str) {
     return str.replace(/&#39;/g, "'")
-    .replace(/&#38;/g, "&")
-    .replace(/&#34;/g, "\"")
-    .replace(/&#60;/g, "<")
-    .replace(/&#62;/g, ">")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, "\"")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
-    .trim();
+        .replace(/&#38;/g, "&")
+        .replace(/&#34;/g, "\"")
+        .replace(/&#60;/g, "<")
+        .replace(/&#62;/g, ">")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, "\"")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&nbsp;/g, " ")
+        .trim();
 }
