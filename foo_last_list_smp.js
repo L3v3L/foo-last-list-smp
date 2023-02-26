@@ -6,7 +6,7 @@ include('main\\last_list\\last_list_button.js');
 window.DefineScript("Last List",
     {
         author: "Ivo Barros",
-        version: "0.2",
+        version: "0.3",
     });
 
 const lastList = new _lastList();
