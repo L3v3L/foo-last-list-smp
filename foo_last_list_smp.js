@@ -14,25 +14,29 @@ const ButtonStates = {
 let buttonTemplate = {
     x: 5,
     y: 5,
-    w: 110,
+    w: 60,
     h: 26,
     rowSize: 35,
 };
 
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
+        let url = "https://www.last.fm/user/L3v3L/loved?page=2";
         try {
-            let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+            //let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
             // if url has page as parameter, set directPage to true
-            let regexPattern = /\/.*\?.*page=(\d+)/gmi;
+            let regexPattern = /\/.*\?.*(page=(\d+))/gmi;
 
             let matches = [...url.matchAll(regexPattern)];
+
             let startPage = 1;
             if (matches.length > 0) {
-                startPage = parseInt(matches[0][1]);
-                if (isNaN(page) || page < 1) {
+                startPage = parseInt(matches[0][2]);
+                if (isNaN(startPage) || startPage < 1) {
                     startPage = 1;
                 }
+
+                url = url.replace(matches[0][1], "");
             }
 
             let pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
@@ -44,6 +48,8 @@ const buttons = {
             let playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
             scrapeUrl(url, startPage, pages, playlistName);
         } catch (e) {
+            // show error message
+            console.log("Last List Error: " + e.message);
         }
     }),
 };
@@ -77,7 +83,10 @@ function scrapeUrl(url, startPage, pages, playlistName) {
     for (let i = startPage; i < (startPage + pages); i++) {
         promises.push(new Promise((resolve, reject) => {
             let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-            xmlhttp.open("GET", url + "?page=" + i, true);
+            let urlAppend = url.includes("?") ? "&" : "?";
+
+            xmlhttp.open("GET", `${url}${urlAppend}page=${i}`, true);
+
             xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                     console.log("Searching for youtube links from page " + i + " ...");
