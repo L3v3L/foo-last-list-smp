@@ -1,6 +1,13 @@
-window.DefineScript("last-list", { author: "Ivo Barros" });
+'use strict';
+
 include("docs/Flags.js");
 include("docs/Helpers.js");
+
+window.DefineScript("last-list",
+{
+    author: "Ivo Barros",
+    version: "0.1",
+});
 
 const g_theme = window.CreateThemeManager("Button");
 const g_font = gdi.Font("Segoe UI", 12);
@@ -21,9 +28,8 @@ let buttonTemplate = {
 
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
-        let url = "https://www.last.fm/user/L3v3L/loved?page=2";
         try {
-            //let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+            let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
             // if url has page as parameter, set directPage to true
             let regexPattern = /\/.*\?.*(page=(\d+))/gmi;
 
@@ -49,7 +55,7 @@ const buttons = {
             scrapeUrl(url, startPage, pages, playlistName);
         } catch (e) {
             // show error message
-            console.log("Last List Error: " + e.message);
+            log("Error - " + e.message);
         }
     }),
 };
@@ -57,6 +63,9 @@ const buttons = {
 let g_down = false;
 let cur_btn = null;
 
+function log(msg) {
+    console.log('Last List: ' + msg);
+}
 
 function scrapeUrl(url, startPage, pages, playlistName) {
     // create an index of the library
@@ -89,12 +98,12 @@ function scrapeUrl(url, startPage, pages, playlistName) {
 
             xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    console.log("Searching for youtube links from page " + i + " ...");
+                    log(`searching page ${i}...`);
                     let content = xmlhttp.responseText;
 
                     // find all youtube links with title and artist
                     let matches = [...content.matchAll(regexElement)];
-                    console.log(matches.length + " matches found");
+                    log(`${matches.length} matches found`);
                     matches.every((match) => {
 
                         let youtube = [...match[0].matchAll(regexYoutube)];
@@ -133,9 +142,16 @@ function scrapeUrl(url, startPage, pages, playlistName) {
 
     Promise.all(promises).then(() => {
         addItemsToPlaylist(itemsToAdd, playlist);
+        // TODO remove duplicates from playlist
+        /*
+        let playlistItems = plman.GetPlaylistItems(playlist);
+        plman.ClearPlaylist(playlist);
+        plman.InsertPlaylistItemsFilter(playlist, 0, playlistItems);
+        */
+
         // activate playlist
         plman.ActivePlaylist = playlist;
-        console.log("Last List finished");
+        log("finished");
     });
 }
 
@@ -144,7 +160,7 @@ function addItemsToPlaylist(items, playlist) {
     items = [...new Set(items)];
     // check if there are items to add
     if (items.length == 0) {
-        console.log("No items to add");
+        log("No items to add");
         return false;
     }
 
@@ -160,7 +176,7 @@ function addItemsToPlaylist(items, playlist) {
                 queue = new FbMetadbHandleList();
             }
             if (lastType == "local") {
-                plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
+                plman.InsertPlaylistItems(playlist, plman.PlaylistItemCount(playlist), queue);
                 queue = [];
             }
 
@@ -171,15 +187,14 @@ function addItemsToPlaylist(items, playlist) {
             queue.push(`3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`);
         }
         if (type == "local") {
-            queue.Add(itemToAdd.file);
+            queue.Insert(queue.Count, itemToAdd.file);
         }
     });
     if (lastType == "youtube") {
         plman.AddLocations(playlist, queue);
-
     }
     if (lastType == "local") {
-        plman.InsertPlaylistItemsFilter(playlist, plman.PlaylistItemCount(playlist), queue);
+        plman.InsertPlaylistItems(playlist, plman.PlaylistItemCount(playlist), queue);
     }
 }
 
