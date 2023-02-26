@@ -117,6 +117,10 @@ function _lastList() {
                         // add items to playlist
                         resolve();
                     }
+
+                    if(xmlhttp.readyState == 4 && xmlhttp.status != 200) {
+                        resolve();
+                    }
                 };
 
                 setTimeout(function () {
