@@ -1,37 +1,76 @@
 'use strict';
 
+// InputError
+class InputError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "InputError";
+    }
+}
+
+
 function _lastList() {
 
     this.run = () => {
-        // try {
-        let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
-        // if url has page as parameter, set directPage to true
-        let regexPattern = /\/.*\?.*(page=(\d+))/gmi;
-
-        let matches = [...url.matchAll(regexPattern)];
-
-        let startPage = 1;
-        if (matches.length > 0) {
-            startPage = parseInt(matches[0][2]);
-            if (isNaN(startPage) || startPage < 1) {
-                startPage = 1;
+        try {
+            let url;
+            try {
+                url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+            } catch (e) {
+                throw new InputError('Cancelled Input');
             }
 
-            url = url.replace(matches[0][1], "");
-        }
+            if (!url) {
+                throw new InputError('No URL');
+            }
 
-        let pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
-        pages = parseInt(pages);
-        if (isNaN(pages) || pages < 1) {
-            pages = 1;
-        }
+            // if url has page as parameter, set directPage to true
+            let regexPattern = /\/.*\?.*(page=(\d+))/gmi;
 
-        let playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
-        this.scrapeUrl(url, startPage, pages, playlistName);
-        // } catch (e) {
-        // show error message
-        // this.log("Error - " + e.message);
-        // }
+            let matches = [...url.matchAll(regexPattern)];
+
+            let startPage = 1;
+            if (matches.length > 0) {
+                startPage = parseInt(matches[0][2]);
+                if (isNaN(startPage) || startPage < 1) {
+                    startPage = 1;
+                }
+
+                url = url.replace(matches[0][1], "");
+            }
+
+            let pages;
+            try {
+                pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
+            } catch (e) {
+                throw new InputError('Cancelled Input');
+            }
+            pages = parseInt(pages);
+            if (isNaN(pages) || pages < 1) {
+                pages = 1;
+            }
+
+            let playlistName;
+            try {
+                playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
+            } catch (e) {
+                throw new InputError('Cancelled Input');
+            }
+
+            if (!playlistName) {
+                throw new InputError('No playlist name');
+            }
+
+            this.scrapeUrl(url, startPage, pages, playlistName);
+        } catch (e) {
+            if (e instanceof InputError) {
+                // do nothing
+            } else {
+                //show error message
+                this.log("Error - " + e.message);
+            }
+
+        }
     };
 
     this.log = (msg) => {
@@ -118,7 +157,7 @@ function _lastList() {
                         resolve();
                     }
 
-                    if(xmlhttp.readyState == 4 && xmlhttp.status != 200) {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status != 200) {
                         resolve();
                     }
                 };
