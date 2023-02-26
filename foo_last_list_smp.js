@@ -3,7 +3,7 @@
 include("docs/Flags.js");
 include("docs/Helpers.js");
 
-window.DefineScript("last-list",
+window.DefineScript("Last List",
 {
     author: "Ivo Barros",
     version: "0.1",
