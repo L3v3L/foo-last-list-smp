@@ -4,15 +4,14 @@ include('main\\last_list\\last_list.js');
 include('main\\last_list\\last_list_button.js');
 
 window.DefineScript("Last List",
-{
-    author: "Ivo Barros",
-    version: "0.1",
-});
-
-// Button
+    {
+        author: "Ivo Barros",
+        version: "0.1",
+    });
 
 const lastList = new _lastList();
 
+// Button
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
         lastList.run();
