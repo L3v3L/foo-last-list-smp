@@ -11,7 +11,7 @@ window.DefineScript("Last List",
 
 // Button
 
-const lastList = new lasList();
+const lastList = new _lastList();
 
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {

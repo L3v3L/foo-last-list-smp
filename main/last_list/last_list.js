@@ -1,6 +1,6 @@
 'use strict';
 
-function lasList() {
+function _lastList() {
 	
 	this.run = () => {
 		// try {
