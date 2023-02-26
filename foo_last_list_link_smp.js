@@ -21,98 +21,115 @@ let buttonTemplate = {
 
 const buttons = {
     ScrapeForYoutube: new columnButton(buttonTemplate, 0, "Last List Link", function () {
-        let url = utils.InputBox("Enter the URL:", "Download", "");
+        try {
+            let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+            // if url has page as parameter, set directPage to true
+            let regexPattern = /\/.*\?.*page=(\d+)/gmi;
 
-        // create an index of the library
-        let indexedLibrary = [];
-        fb.GetLibraryItems().Convert().forEach((item) => {
-            let fileInfo = item.GetFileInfo();
-            let titleLib = fileInfo.MetaValue(fileInfo.MetaFind("TITLE"), 0).toLowerCase().trim();
-            let artistLib = fileInfo.MetaValue(fileInfo.MetaFind("ARTIST"), 0).toLowerCase().trim();
-            indexedLibrary[`${artistLib} - ${titleLib}`] = item;
-        });
+            let matches = [...url.matchAll(regexPattern)];
+            let startPage = 1;
+            if (matches.length > 0) {
+                startPage = parseInt(matches[0][1]);
+                if (isNaN(page) || page < 1) {
+                    startPage = 1;
+                }
+            }
 
-        // regex patterns to match
-        let regexElement = /data-youtube-id=[^>]*>/gmi;
-        let regexYoutube = /data-youtube-id=\"([^\"]*)\"/gmi;
-        let regexTitle = /data-track-name=\"([^\"]*)\"/gmi;
-        let regexArtist = /data-artist-name=\"([^\"]*)\"/gmi;
+            let pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
+            pages = parseInt(pages);
+            if (isNaN(pages) || pages < 1) {
+                pages = 1;
+            }
 
-        // create playlist
-        let playlist = plman.FindOrCreatePlaylist("LastLinkList", false);
-        plman.ClearPlaylist(playlist);
-        let itemsToAdd = [];
-
-        let promises = [];
-        for (let i = 1; i <= 1; i++) {
-            promises.push(new Promise((resolve, reject) => {
-                let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-                xmlhttp.open("GET", url + "?page=" + i, true);
-                xmlhttp.onreadystatechange = function () {
-                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                        console.log("Scraping for youtube links from page " + i + " ...");
-                        let content = xmlhttp.responseText;
-
-                        // find all youtube links with title and artist
-                        let matches = [...content.matchAll(regexElement)];
-                        console.log(matches.length + " matches found");
-                        matches.every((match) => {
-                            // scrape youtube id
-                            let youtube = match[0].match(regexYoutube);
-                            youtube = youtube[0]
-                                .replace("data-youtube-id=\"", "")
-                                .replace("\"", "");
-                            // scrape title
-                            let title = match[0].match(regexTitle);
-                            title = cleanString(decodeURI(title[0]
-                                .replace("data-track-name=\"", "")
-                                .replace("\"", "")
-                            ));
-                            // scrape artist
-                            let artist = match[0].match(regexArtist);
-                            artist = cleanString(decodeURI(artist[0]
-                                .replace("data-artist-name=\"", "")
-                                .replace("\"", "")
-                            ));
-                            // TODO what if only youtube doesn't exist but have track in library?
-                            // continue if any of the values is empty
-                            if (!youtube || !title || !artist) {
-                                return true;
-                            }
-                            // add to items to add
-                            itemsToAdd.push({
-                                youtube: youtube,
-                                title: title,
-                                artist: artist,
-                                file: indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`]
-                            });
-
-                            return true;
-                        });
-                        // add items to playlist
-                        resolve();
-                    }
-                };
-
-                setTimeout(function () {
-                    xmlhttp.send();
-                }, 5000 * (i - 1));
-            }));
+            let playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastLinkList', true);
+            scrapeUrl(url, startPage, pages, playlistName);
+        } catch (e) {
         }
-
-        Promise.all(promises).then(() => {
-            addItemsToPlaylist(itemsToAdd, playlist);
-            // activate playlist
-            plman.ActivePlaylist = playlist;
-            console.log("Last List Link finished");
-        });
-
-        return;
     }),
 };
 
 let g_down = false;
 let cur_btn = null;
+
+
+function scrapeUrl(url, startPage, pages, playlistName) {
+    // create an index of the library
+    let indexedLibrary = [];
+    fb.GetLibraryItems().Convert().forEach((item) => {
+        let fileInfo = item.GetFileInfo();
+        let titleLib = fileInfo.MetaValue(fileInfo.MetaFind("TITLE"), 0).toLowerCase().trim();
+        let artistLib = fileInfo.MetaValue(fileInfo.MetaFind("ARTIST"), 0).toLowerCase().trim();
+        indexedLibrary[`${artistLib} - ${titleLib}`] = item;
+    });
+
+    // regex patterns to match
+    let regexElement = /data-youtube-id=[^>]*>/gmi;
+    let regexYoutube = /data-youtube-id=\"([^\"]*)\"/gmi;
+    let regexTitle = /data-track-name=\"([^\"]*)\"/gmi;
+    let regexArtist = /data-artist-name=\"([^\"]*)\"/gmi;
+
+    // create playlist
+    let playlist = plman.FindOrCreatePlaylist(playlistName, false);
+    plman.ClearPlaylist(playlist);
+    let itemsToAdd = [];
+
+    let promises = [];
+    for (let i = startPage; i < (startPage + pages); i++) {
+        promises.push(new Promise((resolve, reject) => {
+            let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            xmlhttp.open("GET", url + "?page=" + i, true);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    console.log("Scraping for youtube links from page " + i + " ...");
+                    let content = xmlhttp.responseText;
+
+                    // find all youtube links with title and artist
+                    let matches = [...content.matchAll(regexElement)];
+                    console.log(matches.length + " matches found");
+                    matches.every((match) => {
+
+                        // scrape youtube id
+                        let youtube = [...match[0].matchAll(regexYoutube)];
+                        let title = [...match[0].matchAll(regexTitle)];
+                        let artist = [...match[0].matchAll(regexArtist)];
+
+                        // TODO what if only youtube doesn't exist but have track in library?
+                        if (title.length == 0 || artist.length == 0 || youtube.length == 0) {
+                            return true;
+                        }
+
+                        youtube = youtube[0][1];
+                        title = cleanString(decodeURI(title[0][1]));
+                        artist = cleanString(decodeURI(artist[0][1]));
+
+                        // add to items to add
+                        itemsToAdd.push({
+                            youtube: youtube,
+                            title: title,
+                            artist: artist,
+                            file: indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`]
+                        });
+
+                        return true;
+                    });
+                    // add items to playlist
+                    resolve();
+                }
+            };
+
+            setTimeout(function () {
+                xmlhttp.send();
+            }, 5000 * (i - startPage));
+        }));
+    }
+
+    Promise.all(promises).then(() => {
+        addItemsToPlaylist(itemsToAdd, playlist);
+        // activate playlist
+        plman.ActivePlaylist = playlist;
+        console.log("Last List Link finished");
+    });
+}
 
 function addItemsToPlaylist(items, playlist) {
     // remove duplicates
