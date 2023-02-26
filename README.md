@@ -1,4 +1,4 @@
-# Last List Link
+# Last List
 
 This is a spider monkey panel for [foobar2000](https://www.foobar2000.org) that allows you create a playlist from a [Last.fm](https://www.Last.fm) url.
 

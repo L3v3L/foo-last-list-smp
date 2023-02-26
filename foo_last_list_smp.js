@@ -1,4 +1,4 @@
-window.DefineScript("last-list-link", { author: "Ivo Barros" });
+window.DefineScript("last-list", { author: "Ivo Barros" });
 include("docs/Flags.js");
 include("docs/Helpers.js");
 
@@ -20,7 +20,7 @@ let buttonTemplate = {
 };
 
 const buttons = {
-    ScrapeForYoutube: new columnButton(buttonTemplate, 0, "Last List Link", function () {
+    LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
         try {
             let url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
             // if url has page as parameter, set directPage to true
@@ -41,7 +41,7 @@ const buttons = {
                 pages = 1;
             }
 
-            let playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastLinkList', true);
+            let playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
             scrapeUrl(url, startPage, pages, playlistName);
         } catch (e) {
         }
@@ -80,7 +80,7 @@ function scrapeUrl(url, startPage, pages, playlistName) {
             xmlhttp.open("GET", url + "?page=" + i, true);
             xmlhttp.onreadystatechange = function () {
                 if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    console.log("Scraping for youtube links from page " + i + " ...");
+                    console.log("Searching for youtube links from page " + i + " ...");
                     let content = xmlhttp.responseText;
 
                     // find all youtube links with title and artist
@@ -88,7 +88,6 @@ function scrapeUrl(url, startPage, pages, playlistName) {
                     console.log(matches.length + " matches found");
                     matches.every((match) => {
 
-                        // scrape youtube id
                         let youtube = [...match[0].matchAll(regexYoutube)];
                         let title = [...match[0].matchAll(regexTitle)];
                         let artist = [...match[0].matchAll(regexArtist)];
@@ -127,7 +126,7 @@ function scrapeUrl(url, startPage, pages, playlistName) {
         addItemsToPlaylist(itemsToAdd, playlist);
         // activate playlist
         plman.ActivePlaylist = playlist;
-        console.log("Last List Link finished");
+        console.log("Last List finished");
     });
 }
 
