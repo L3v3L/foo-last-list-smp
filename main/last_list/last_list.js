@@ -11,17 +11,18 @@ class InputError extends Error {
 
 function _lastList() {
 
-    this.run = () => {
+    this.run = (url = '', pages = 1, playlistName = 'LastList') => {
         try {
-            let url;
-            try {
-                url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
-            }
-
-            if (!url) {
-                throw new InputError('No URL');
+            if (!url || !url.length) {
+                try {
+                    url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
+                
+                if (!url || !url.length) {
+                    throw new InputError('No URL');
+                }
             }
 
             // if url has page as parameter, set directPage to true
@@ -39,26 +40,29 @@ function _lastList() {
                 url = url.replace(matches[0][1], "");
             }
 
-            let pages;
-            try {
-                pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
+            if (!pages || isNaN(pages) || pages < 1) {
+                try {
+                    pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
+                
+                pages = parseInt(pages);
+                if (isNaN(pages) || pages < 1) {
+                    pages = 1;
+                }
             }
-            pages = parseInt(pages);
-            if (isNaN(pages) || pages < 1) {
-                pages = 1;
-            }
-
-            let playlistName;
-            try {
-                playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
-            }
-
-            if (!playlistName) {
-                throw new InputError('No playlist name');
+            
+            if (!playlistName || !playlistName.length) {
+                try {
+                    playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
+                
+                if (!playlistName) {
+                    throw new InputError('No playlist name');
+                }
             }
 
             this.scrapeUrl(url, startPage, pages, playlistName);
