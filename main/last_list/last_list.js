@@ -104,6 +104,7 @@ function _lastList() {
         let regexYoutube = /data-youtube-id=\"(.*?)\"/gmi;
         let regexTitle = /data-track-name=\"(.*?)\"/gmi;
         let regexArtist = /data-artist-name=\"(.*?)\"/gmi;
+        let regexCover = /\"cover-art\">\s*<img\s+src=\"(.*?)\"/gmi;
         let regexFallBack = /href=\"\/music\/([^\/]+)\/_\/([^\"]+)\"/gmi;
 
         // create playlist
@@ -132,6 +133,7 @@ function _lastList() {
                             let youtube = [...match[0].matchAll(regexYoutube)];
                             let title = [...match[0].matchAll(regexTitle)];
                             let artist = [...match[0].matchAll(regexArtist)];
+                            let coverArt = [...match[0].matchAll(regexCover)];
 
                             if (title.length && artist.length) {
                                 // clean strings
@@ -164,6 +166,7 @@ function _lastList() {
                                 youtube: youtube.length ? youtube[0][1] : null,
                                 title: title,
                                 artist: artist,
+                                cover: coverArt.length && !coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? coverArt[0][1] : null,
                                 file: file
                             });
 
@@ -228,7 +231,15 @@ function _lastList() {
             }
 
             if (type == "youtube") {
-                queue.push(`3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`);
+                let fooYoutubeUrl = `3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`;
+                if (itemToAdd.cover) {
+                    // upscale cover art link
+                    itemToAdd.cover = itemToAdd.cover.replace(/\/64s\//g, "/300x300/");
+                    // append cover url to youtube url
+                    fooYoutubeUrl += `&fb2kx_thumbnail_url=${encodeURIComponent(itemToAdd.cover)}`;
+                    fooYoutubeUrl += `&fb2k_last_list_thumbnail_url=${encodeURIComponent(itemToAdd.cover)}`;
+                }
+                queue.push(fooYoutubeUrl);
             }
             if (type == "local") {
                 queue.Insert(queue.Count, itemToAdd.file);
