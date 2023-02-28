@@ -15,7 +15,7 @@ function _lastList() {
         try {
             if (!url || !url.length) {
                 try {
-                    url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+                    url = utils.InputBox(0, "Enter the URL:", "Download", this.urlCache.length ? this.urlCache.slice(-1)[0] : '', true);
                 } catch (e) {
                     throw new InputError('Cancelled Input');
                 }
@@ -66,6 +66,10 @@ function _lastList() {
             }
 
             this.scrapeUrl(url, startPage, pages, playlistName);
+            
+            // Add last urls used to cache and impose a limit on history
+            if (this.urlCache.indexOf(url) === -1) {this.urlCache.push(url);}
+            if (this.urlCache.length > 10) {this.urlCache.shift();}
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
@@ -259,4 +263,6 @@ function _lastList() {
             .replace(/&nbsp;/g, " ")
             .trim();
     };
+    
+    this.urlCache = [];
 }
