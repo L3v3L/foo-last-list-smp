@@ -10,17 +10,18 @@ class InputError extends Error {
 
 
 function _lastList() {
+    this.cachedUrls = [];
 
-    this.run = (url = '', pages = 1, playlistName = 'LastList') => {
+    this.run = (url = '', pages = 1, playlistName = 'Last List') => {
         try {
-            if (!url || !url.length) {
+            if (!url) {
                 try {
-                    url = utils.InputBox(0, "Enter the URL:", "Download", this.urlCache.length ? this.urlCache.slice(-1)[0] : '', true);
+                    url = utils.InputBox(0, "Enter the URL:", "Download", this.cachedUrls.length ? this.cachedUrls[0] : '', true);
                 } catch (e) {
                     throw new InputError('Cancelled Input');
                 }
-                
-                if (!url || !url.length) {
+
+                if (!url) {
                     throw new InputError('No URL');
                 }
             }
@@ -46,30 +47,33 @@ function _lastList() {
                 } catch (e) {
                     throw new InputError('Cancelled Input');
                 }
-                
+
                 pages = parseInt(pages);
                 if (isNaN(pages) || pages < 1) {
                     pages = 1;
                 }
             }
-            
-            if (!playlistName || !playlistName.length) {
+
+            if (!playlistName) {
                 try {
-                    playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
+                    playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'Last List', true);
                 } catch (e) {
                     throw new InputError('Cancelled Input');
                 }
-                
+
                 if (!playlistName) {
                     throw new InputError('No playlist name');
                 }
             }
 
             this.scrapeUrl(url, startPage, pages, playlistName);
-            
-            // Add last urls used to cache and impose a limit on history
-            if (this.urlCache.indexOf(url) === -1) {this.urlCache.push(url);}
-            if (this.urlCache.length > 10) {this.urlCache.shift();}
+
+            // removes url from cache if it exists and slices the cache to 9 items
+            this.cachedUrls = this.cachedUrls.filter((cachedUrl) => {
+                return cachedUrl !== url;
+            }).slice(0, 9);
+            // add url to the beginning of the cache
+            this.cachedUrls.unshift(url);
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
@@ -274,6 +278,4 @@ function _lastList() {
             .replace(/&nbsp;/g, " ")
             .trim();
     };
-    
-    this.urlCache = [];
 }
