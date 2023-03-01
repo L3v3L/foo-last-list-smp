@@ -10,18 +10,20 @@ class InputError extends Error {
 
 
 function _lastList() {
+    this.cachedUrls = [];
 
-    this.run = () => {
+    this.run = (url = '', pages = 1, playlistName = 'Last List') => {
         try {
-            let url;
-            try {
-                url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
-            }
-
             if (!url) {
-                throw new InputError('No URL');
+                try {
+                    url = utils.InputBox(0, "Enter the URL:", "Download", this.cachedUrls.length ? this.cachedUrls[0] : '', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
+
+                if (!url) {
+                    throw new InputError('No URL');
+                }
             }
 
             // if url has page as parameter, set directPage to true
@@ -39,29 +41,39 @@ function _lastList() {
                 url = url.replace(matches[0][1], "");
             }
 
-            let pages;
-            try {
-                pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
-            }
-            pages = parseInt(pages);
-            if (isNaN(pages) || pages < 1) {
-                pages = 1;
-            }
+            if (!pages || isNaN(pages) || pages < 1) {
+                try {
+                    pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
 
-            let playlistName;
-            try {
-                playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'LastList', true);
-            } catch (e) {
-                throw new InputError('Cancelled Input');
+                pages = parseInt(pages);
+                if (isNaN(pages) || pages < 1) {
+                    pages = 1;
+                }
             }
 
             if (!playlistName) {
-                throw new InputError('No playlist name');
+                try {
+                    playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'Last List', true);
+                } catch (e) {
+                    throw new InputError('Cancelled Input');
+                }
+
+                if (!playlistName) {
+                    throw new InputError('No playlist name');
+                }
             }
 
             this.scrapeUrl(url, startPage, pages, playlistName);
+
+            // removes url from cache if it exists and slices the cache to 9 items
+            this.cachedUrls = this.cachedUrls.filter((cachedUrl) => {
+                return cachedUrl !== url;
+            }).slice(0, 9);
+            // add url to the beginning of the cache
+            this.cachedUrls.unshift(url);
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
@@ -104,6 +116,7 @@ function _lastList() {
         let regexYoutube = /data-youtube-id=\"(.*?)\"/gmi;
         let regexTitle = /data-track-name=\"(.*?)\"/gmi;
         let regexArtist = /data-artist-name=\"(.*?)\"/gmi;
+        let regexCover = /\"cover-art\">\s*<img\s+src=\"(.*?)\"/gmi;
         let regexFallBack = /href=\"\/music\/([^\/]+)\/_\/([^\"]+)\"/gmi;
 
         // create playlist
@@ -132,6 +145,7 @@ function _lastList() {
                             let youtube = [...match[0].matchAll(regexYoutube)];
                             let title = [...match[0].matchAll(regexTitle)];
                             let artist = [...match[0].matchAll(regexArtist)];
+                            let coverArt = [...match[0].matchAll(regexCover)];
 
                             if (title.length && artist.length) {
                                 // clean strings
@@ -164,6 +178,7 @@ function _lastList() {
                                 youtube: youtube.length ? youtube[0][1] : null,
                                 title: title,
                                 artist: artist,
+                                cover: coverArt.length && !coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? coverArt[0][1] : null,
                                 file: file
                             });
 
@@ -228,7 +243,15 @@ function _lastList() {
             }
 
             if (type == "youtube") {
-                queue.push(`3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`);
+                let fooYoutubeUrl = `3dydfy://www.youtube.com/watch?v=${itemToAdd.youtube}&fb2k_artist=${encodeURIComponent(itemToAdd.artist)}&fb2k_title=${encodeURIComponent(itemToAdd.title)}`;
+                if (itemToAdd.cover) {
+                    // upscale cover art link
+                    itemToAdd.cover = itemToAdd.cover.replace(/\/64s\//g, "/300x300/");
+                    // append cover url to youtube url
+                    fooYoutubeUrl += `&fb2kx_thumbnail_url=${encodeURIComponent(itemToAdd.cover)}`;
+                    fooYoutubeUrl += `&fb2k_last_list_thumbnail_url=${encodeURIComponent(itemToAdd.cover)}`;
+                }
+                queue.push(fooYoutubeUrl);
             }
             if (type == "local") {
                 queue.Insert(queue.Count, itemToAdd.file);

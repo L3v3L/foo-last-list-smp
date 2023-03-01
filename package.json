@@ -1,0 +1,9 @@
+{
+    "version": "0.6",
+    "name": "foo-last-list-smp",
+    "author": "Ivo Barros",
+    "id": "{152DE6E6-A5D6-4434-88D8-E9FF00130BF9}",
+    "description": "Create playlists from Last.fm urls",
+    "shouldGrabFocus": true,
+    "enableDragDrop": false
+}
