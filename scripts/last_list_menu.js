@@ -84,22 +84,26 @@ function buildUrl(type, meta) {
 function _lastListMenu(parent) {
     const menu = new _menu();
     // Get current selection and metadata
-    const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
-    const selectionInfo = selection ? selection.GetFileInfo() : null;
-
     menu.newEntry({ entryText: 'Search on Last.fm:', flags: MF_GRAYED });
     menu.newEntry({ entryText: 'sep' });
 
-    if (selectionInfo) {
-        [
-            ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
-            ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
-            ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
-            ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
-        ].forEach((args) => {
-            let config = createButtonConfig(selectionInfo, ...args);
+    let trackButtonsArgs = [
+        ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
+        ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
+        ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
+        ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
+    ];
+
+    // Playing track Submenu
+    const currentPlaying = fb.IsPlaying ? fb.GetNowPlaying() : null;
+    const currentPlayingInfo = currentPlaying ? currentPlaying.GetFileInfo() : null;
+    if (currentPlayingInfo) {
+        let playingSubMenu = menu.newMenu('Playing Track');
+        trackButtonsArgs.forEach((args) => {
+            let config = createButtonConfig(currentPlayingInfo, ...args);
             menu.newEntry(
                 {
+                    menuName: playingSubMenu,
                     entryText: config.entryText,
                     func: () => { parent.run(config.url) },
                     flags: config.flags
@@ -108,28 +112,39 @@ function _lastListMenu(parent) {
         });
     }
 
-    let lastfm_username = window.GetProperty('lastfm_username', false);
-
-    if (lastfm_username) {
-        menu.newEntry({ entryText: 'sep' });
-        menu.newEntry({ entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
-        menu.newEntry({ entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
+    // Selected track Submenu
+    const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
+    const selectionInfo = selection ? selection.GetFileInfo() : null;
+    if (selectionInfo && !selection.Compare(currentPlaying)) {
+        let selectedSubMenu = menu.newMenu('Selected Track');
+        trackButtonsArgs.forEach((args) => {
+            let config = createButtonConfig(selectionInfo, ...args);
+            menu.newEntry(
+                {
+                    menuName: selectedSubMenu,
+                    entryText: config.entryText,
+                    func: () => { parent.run(config.url) },
+                    flags: config.flags
+                }
+            );
+        });
     }
-    menu.newEntry({ entryText: 'sep' });
 
-    menu.newEntry({ entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
+    // Last.fm Account Submenu
+    let lastfm_username = window.GetProperty('lastfm_username', false);
+    let lastFMAccountSubMenu;
+    if (lastfm_username) {
+        lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
+    }
 
     menu.newEntry({
-        entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
-    });
-    menu.newEntry({ entryText: 'By URL', func: () => { parent.run(null, null, null) } });
-
-    menu.newEntry({ entryText: 'sep' });
-
-    menu.newEntry({
-        entryText: !lastfm_username ? 'Set Last.fm Username' : 'Last.fm: ' + lastfm_username, func: () => {
+        menuName: lastfm_username ? lastFMAccountSubMenu : 'main',
+        entryText: 'Set Last.fm Username', func: () => {
             try {
-                lastfm_username = utils.InputBox(window.ID, 'Last.fm Username', 'Enter your Last.fm username', lastfm_username ? lastfm_username : '');
+                lastfm_username = utils.InputBox(window.ID, 'Last.fm Username', 'Enter your Last.fm username', '');
                 if (lastfm_username) {
                     window.SetProperty('lastfm_username', lastfm_username.trim());
                 }
@@ -137,6 +152,17 @@ function _lastListMenu(parent) {
             }
         }
     });
+
+    menu.newEntry({ entryText: 'sep' });
+
+    let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
+    menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
+
+    menu.newEntry({
+        menuName: lastFMGlobalSubMenu,
+        entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
+    });
+    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run(null, null, null) } });
 
     return menu;
 }
