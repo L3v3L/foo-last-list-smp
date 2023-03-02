@@ -138,55 +138,95 @@ function _lastList() {
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                         this.log(`searching page ${i}...`);
                         let content = xmlhttp.responseText;
+                        // check if content is json
 
-                        // find all youtube links with title and artist
-                        let matches = [...content.matchAll(regexElement)];
-                        this.log(`${matches.length} matches found`);
-                        matches.every((match) => {
-                            // get track info from youtube data element
-                            let youtube = [...match[0].matchAll(regexYoutube)];
-                            let title = [...match[0].matchAll(regexTitle)];
-                            let artist = [...match[0].matchAll(regexArtist)];
-                            let coverArt = [...match[0].matchAll(regexCover)];
+                        let trackItems = [];
 
-                            if (title.length && artist.length) {
-                                // clean strings
-                                title = this.cleanString(decodeURI(title[0][1]));
-                                artist = this.cleanString(decodeURI(artist[0][1]));
-                            } else { // fallback to href if youtube data element is not available
-                                let fallbackData = [...match[0].matchAll(regexFallBack)];
-                                if (!fallbackData.length) {
-                                    return true;
+                        if (content.startsWith('{')) {
+                            try {
+                                let json = JSON.parse(content);
+                                if (json.error) {
+                                    this.log(`Error - ${json.error}`);
+                                    resolve();
+                                    return;
                                 }
-                                // clean strings
-                                artist = decodeURIComponent(fallbackData[0][1]).replace(/\+/g, " ");
-                                title = decodeURIComponent(fallbackData[0][2]).replace(/\+/g, " ");
-                            }
+                                json.playlist.every((track) => {
+                                    // check everthing needed is present
+                                    if (!track.name || !track.artists || !track.artists.length || !track.playlinks || !track.playlinks.length) {
+                                        return true;
+                                    }
 
+                                    trackItems.push({
+                                        youtube: track.playlinks[0].id,
+                                        title: track.name,
+                                        artist: track.artists[0].name,
+                                        coverArt: null
+                                    });
+                                    return true;
+                                });
+                            } catch (e) {
+                                this.log(`Error - ${e.message}`);
+                                resolve();
+                                return;
+                            }
+                        } else {
+                            let matches = [...content.matchAll(regexElement)];
+                            this.log(`${matches.length} matches found`);
+                            matches.every((match) => {
+                                // get track info from youtube data element
+                                let youtube = [...match[0].matchAll(regexYoutube)];
+                                let title = [...match[0].matchAll(regexTitle)];
+                                let artist = [...match[0].matchAll(regexArtist)];
+                                let coverArt = [...match[0].matchAll(regexCover)];
+
+                                if (title.length && artist.length) {
+                                    // clean strings
+                                    title = this.cleanString(decodeURI(title[0][1]));
+                                    artist = this.cleanString(decodeURI(artist[0][1]));
+                                } else { // fallback to href if youtube data element is not available
+                                    let fallbackData = [...match[0].matchAll(regexFallBack)];
+                                    if (!fallbackData.length) {
+                                        return true;
+                                    }
+                                    // clean strings
+                                    artist = decodeURIComponent(fallbackData[0][1]).replace(/\+/g, " ");
+                                    title = decodeURIComponent(fallbackData[0][2]).replace(/\+/g, " ");
+                                }
+
+                                trackItems.push({
+                                    youtube: youtube.length ? youtube[0][1] : null,
+                                    title: title,
+                                    artist: artist,
+                                    coverArt: coverArt.length && !coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? coverArt[0][1] : null
+                                });
+
+                                return true;
+                            });
+                        }
+
+                        trackItems.forEach((track) => {
                             // if no title or artist, skip
-                            if (!title.length || !artist.length) {
+                            if (!track.title || !track.artist) {
                                 return true;
                             }
 
                             // get file from library
-                            let file = indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`];
+                            let file = indexedLibrary[`${track.artist.toLowerCase()} - ${track.title.toLowerCase()}`];
                             // if no file and no youtube link or no foo_youtube, skip
-                            if (!file && (!youtube.length || !hasYoutubeComponent)) {
+                            if (!file && (!track.youtube || !hasYoutubeComponent)) {
                                 return true;
                             }
 
                             // add to items to add
                             itemsToAdd.push({
-                                youtube: youtube.length ? youtube[0][1] : null,
-                                title: title,
-                                artist: artist,
-                                cover: coverArt.length && !coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? coverArt[0][1] : null,
+                                youtube: track.youtube,
+                                title: track.title,
+                                artist: track.artist,
+                                cover: track.coverArt,
                                 file: file
                             });
-
-                            return true;
                         });
-                        // add items to playlist
+
                         resolve();
                     }
 
