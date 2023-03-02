@@ -130,6 +130,82 @@ function _lastListMenu(parent) {
         });
     }
 
+
+
+    menu.newEntry({ entryText: 'sep' });
+
+    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run(null, null, null) } });
+    let customUserSubMenu = menu.newMenu('Custom User');
+    menu.newEntry({
+        menuName: customUserSubMenu, entryText: 'Top Tracks', func: () => {
+            try {
+                let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
+                if (customValue) {
+                    parent.run(buildUrl('USER_LIBRARY', [customValue]));
+                }
+            } catch (e) {
+            }
+        }
+    });
+
+    menu.newEntry({
+        menuName: customUserSubMenu, entryText: 'Loved Tracks', func: () => {
+            try {
+                let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
+                if (customValue) {
+                    parent.run(buildUrl('USER_LOVED', [customValue]));
+                }
+            } catch (e) {
+            }
+        }
+    });
+
+    let customArtistSubMenu = menu.newMenu('Custom Artist');
+    menu.newEntry({
+        menuName: customArtistSubMenu, entryText: 'Top Tracks', func: () => {
+            try {
+                let customValue = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
+                if (customValue) {
+                    parent.run(buildUrl('ARTIST_TRACKS', [customValue]));
+                }
+            } catch (e) {
+            }
+        }
+    });
+    menu.newEntry({
+        menuName: customArtistSubMenu, entryText: 'Album', func: () => {
+            try {
+                let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
+                let customValueAlbum = utils.InputBox(window.ID, 'Last.fm Album', 'Enter Last.fm Album', '');
+                if (customValueArtist && customValueAlbum) {
+                    parent.run(buildUrl('ALBUM_TRACKS', [customValueArtist, customValueAlbum]));
+                }
+            } catch (e) {
+            }
+        }
+    });
+
+    menu.newEntry({
+        entryText: 'Custom Tag', func: () => {
+            try {
+                let customValue = utils.InputBox(window.ID, 'Last.fm Tag', 'Enter Last.fm Tag', '');
+                if (customValue) {
+                    parent.run(buildUrl('TAG_TRACKS', [customValue]));
+                }
+            } catch (e) {
+            }
+        }
+    });
+
+    menu.newEntry({ entryText: 'sep' });
+    let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
+    menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
+
+    menu.newEntry({
+        menuName: lastFMGlobalSubMenu,
+        entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
+    });
+
     // Last.fm Account Submenu
     let lastfm_username = window.GetProperty('lastfm_username', false);
     let lastFMAccountSubMenu;
@@ -139,7 +215,6 @@ function _lastListMenu(parent) {
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
     }
-
     menu.newEntry({
         menuName: lastfm_username ? lastFMAccountSubMenu : 'main',
         entryText: 'Set Last.fm Username', func: () => {
@@ -152,17 +227,6 @@ function _lastListMenu(parent) {
             }
         }
     });
-
-    menu.newEntry({ entryText: 'sep' });
-
-    let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
-    menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
-
-    menu.newEntry({
-        menuName: lastFMGlobalSubMenu,
-        entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
-    });
-    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run(null, null, null) } });
 
     return menu;
 }
