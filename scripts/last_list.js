@@ -124,6 +124,8 @@ function _lastList() {
         plman.ClearPlaylist(playlist);
         let itemsToAdd = [];
 
+        let hasYoutubeComponent = utils.CheckComponent('foo_youtube', true);
+
         let promises = [];
         for (let i = startPage; i < (startPage + pages); i++) {
             promises.push(new Promise((resolve, reject) => {
@@ -168,8 +170,8 @@ function _lastList() {
 
                             // get file from library
                             let file = indexedLibrary[`${artist.toLowerCase()} - ${title.toLowerCase()}`];
-                            // if no file and no youtube link, skip
-                            if (!file && !youtube.length) {
+                            // if no file and no youtube link or no foo_youtube, skip
+                            if (!file && (!youtube.length || !hasYoutubeComponent)) {
                                 return true;
                             }
 
