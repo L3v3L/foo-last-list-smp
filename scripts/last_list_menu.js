@@ -8,17 +8,17 @@ function _lastListMenu(parent) {
     const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
     const selectionInfo = selection ? selection.GetFileInfo() : null;
     const tags = [
-        { name: 'Artist(s)', tf: ['ARTIST', 'ALBUMARTIST'], value: [], valueSet: new Set(), type: 'ARTIST' },
-        // {name: 'Title', tf: ['TITLE'], value: [], valueSet: new Set(), type: 'TITLE'},
-        { name: 'Genre & Style(s)', tf: ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
-        { name: 'Folsonomy & Date(s)', tf: ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], value: [], valueSet: new Set(), type: 'TAG' },
-        { name: 'Mood & Theme(s)', tf: ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
+        { name: 'Artist(s)', tagIds: ['ARTIST', 'ALBUMARTIST'], value: [], valueSet: new Set(), type: 'ARTIST' },
+        // {name: 'Title', tagIds: ['TITLE'], value: [], valueSet: new Set(), type: 'TITLE'},
+        { name: 'Genre & Style(s)', tagIds: ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
+        { name: 'Folsonomy & Date(s)', tagIds: ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], value: [], valueSet: new Set(), type: 'TAG' },
+        { name: 'Mood & Theme(s)', tagIds: ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
     ];
 
     if (selectionInfo) {
         tags.forEach((tag) => {
-            tag.tf.forEach((tf, i) => {
-                const idx = selectionInfo.MetaFind(tf);
+            tag.tagIds.forEach((tagId, i) => {
+                const idx = selectionInfo.MetaFind(tagId);
                 tag.value.push([]);
                 if (idx !== -1) {
                     let count = selectionInfo.MetaValueCount(idx);
