@@ -2,6 +2,7 @@
 
 include('scripts\\last_list.js');
 include('scripts\\button.js');
+include('scripts\\last_list_menu.js');
 
 // show notice to user
 let messageTimeStamp = 1677757460;
@@ -21,6 +22,6 @@ const lastList = new _lastList();
 // Button
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
-        lastList.run(null, null, null);
+        _lastListMenu(lastList).btn_up(this.x, this.y + this.h)
     }),
 };
