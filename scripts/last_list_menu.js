@@ -8,11 +8,11 @@ function _lastListMenu(parent) {
     const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
     const selectionInfo = selection ? selection.GetFileInfo() : null;
     const tags = [
-        { name: 'Artist(s)', tf: ['ARTIST', 'ALBUMARTIST'], value: [], valSet: new Set(), type: 'ARTIST' },
-        // {name: 'Title', tf: ['TITLE'], value: [], valSet: new Set(), type: 'TITLE'},
-        { name: 'Genre & Style(s)', tf: ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], value: [], valSet: new Set(), type: 'TAG' },
-        { name: 'Folsonomy & Date(s)', tf: ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], value: [], valSet: new Set(), type: 'TAG' },
-        { name: 'Mood & Theme(s)', tf: ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], value: [], valSet: new Set(), type: 'TAG' },
+        { name: 'Artist(s)', tf: ['ARTIST', 'ALBUMARTIST'], value: [], valueSet: new Set(), type: 'ARTIST' },
+        // {name: 'Title', tf: ['TITLE'], value: [], valueSet: new Set(), type: 'TITLE'},
+        { name: 'Genre & Style(s)', tf: ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
+        { name: 'Folsonomy & Date(s)', tf: ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], value: [], valueSet: new Set(), type: 'TAG' },
+        { name: 'Mood & Theme(s)', tf: ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], value: [], valueSet: new Set(), type: 'TAG' },
     ];
 
     if (selectionInfo) {
@@ -25,7 +25,7 @@ function _lastListMenu(parent) {
                     while (count--) {
                         const value = selectionInfo.MetaValue(idx, count).trim();
                         tag.value[i].push(value);
-                        tag.valSet.add(value);
+                        tag.valueSet.add(value);
                     };
                 }
             });
@@ -36,14 +36,14 @@ function _lastListMenu(parent) {
     menu.newEntry({ entryText: 'sep' });
 
     tags.forEach((tag) => {
-        const bSingle = tag.valSet.size <= 1;
+        const bSingle = tag.valueSet.size <= 1;
         const subMenu = bSingle ? menu.getMainMenuName() : menu.newMenu('Current ' + tag.name + '...');
 
-        if (tag.valSet.size === 0) {
-            tag.valSet.add('');
+        if (tag.valueSet.size === 0) {
+            tag.valueSet.add('');
         }
 
-        [...tag.valSet].sort((a, b) => a.localeCompare(b, 'en', { 'sensitivity': 'base' })).forEach((value) => {
+        [...tag.valueSet].sort((a, b) => a.localeCompare(b, 'en', { 'sensitivity': 'base' })).forEach((value) => {
             menu.newEntry({
                 menuName: subMenu, entryText: bSingle ? 'Current ' + tag.name + '\t[' + (value || (selection ? 'no tag' : 'no selection')) + ']' : value, func: () => {
                     let url;
