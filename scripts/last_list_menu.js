@@ -1,7 +1,7 @@
 'use strict';
 //02/03/23
 
-include('..\\..\\helpers\\menu_xxx.js');
+include('menu_xxx.js');
 
 function _lastListMenu(parent) {
 	const menu = new _menu();
