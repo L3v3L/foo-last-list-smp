@@ -8,11 +8,27 @@ class InputError extends Error {
     }
 }
 
+const hashCode = (str, seed = 0) => {
+    let h1 = 0xdeadbeef ^ seed,
+        h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+};
+
+
 
 function _lastList() {
     this.cachedUrls = [];
 
-    this.run = (url = '', pages = 1, playlistName = 'Last List') => {
+    this.run = (url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000) => {
         try {
             if (!url) {
                 try {
@@ -66,7 +82,7 @@ function _lastList() {
                 }
             }
 
-            this.scrapeUrl(url, startPage, pages, playlistName);
+            this.scrapeUrl(url, startPage, pages, playlistName, cacheTime);
 
             // removes url from cache if it exists and slices the cache to 9 items
             this.cachedUrls = this.cachedUrls.filter((cachedUrl) => {
@@ -89,7 +105,7 @@ function _lastList() {
         console.log('Last List: ' + msg);
     };
 
-    this.scrapeUrl = (url, startPage, pages, playlistName) => {
+    this.scrapeUrl = (url, startPage, pages, playlistName, cacheTime) => {
         // create an index of the library
         let indexedLibrary = {};
         fb.GetLibraryItems().Convert().every((item) => {
@@ -132,9 +148,48 @@ function _lastList() {
                 let xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
                 let urlAppend = url.includes("?") ? "&" : "?";
 
-                xmlhttp.open("GET", `${url}${urlAppend}page=${i}`, true);
+                let urlToUse = `${url}${urlAppend}page=${i}`;
 
+                let cachePath = fb.ProfilePath + "LastListCache\\";
+                // check if cache valid
+                let urlHash = hashCode(urlToUse);
+                let cachedFilePath = cachePath + urlHash + ".json";
+
+                if (utils.IsFile(cachedFilePath)) {
+                    let cachedResultString = utils.ReadTextFile(cachedFilePath);
+                    let cachedResult = JSON.parse(cachedResultString);
+                    if (cachedResult.created_at > (Date.now() - cacheTime)) {
+                        cachedResult.trackItems.forEach((track) => {
+                            // if no title or artist, skip
+                            if (!track.title || !track.artist) {
+                                return true;
+                            }
+
+                            // get file from library
+                            let file = indexedLibrary[`${track.artist.toLowerCase()} - ${track.title.toLowerCase()}`];
+                            // if no file and no youtube link or no foo_youtube, skip
+                            if (!file && (!track.youtube || !hasYoutubeComponent)) {
+                                return true;
+                            }
+
+                            // add to items to add
+                            itemsToAdd.push({
+                                youtube: track.youtube,
+                                title: track.title,
+                                artist: track.artist,
+                                cover: track.coverArt,
+                                file: file
+                            });
+                        });
+                        this.log(`Cached Used`);
+                        resolve();
+                        return;
+                    }
+                }
+
+                xmlhttp.open("GET", urlToUse, true);
                 xmlhttp.onreadystatechange = () => {
+                    this.log(`Cached Not Used`);
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                         this.log(`searching page ${i}...`);
                         let content = xmlhttp.responseText;
@@ -203,6 +258,15 @@ function _lastList() {
                                 return true;
                             });
                         }
+
+                        // record cache
+                        let json = JSON.stringify({
+                            url: url,
+                            created_at: new Date().getTime(),
+                            trackItems: trackItems
+                        });
+                        utils.WriteTextFile(cachedFilePath, json);
+
 
                         trackItems.forEach((track) => {
                             // if no title or artist, skip
