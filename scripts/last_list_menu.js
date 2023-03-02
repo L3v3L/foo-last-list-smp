@@ -121,7 +121,7 @@ function _lastListMenu(parent) {
     // Selected track Submenu
     const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
     const selectionInfo = selection ? selection.GetFileInfo() : null;
-    if (selectionInfo && !selection.Compare(currentPlaying)) {
+    if (selectionInfo && (!currentPlaying || !selection.Compare(currentPlaying))) {
         let selectedSubMenu = menu.newMenu('Selected Track');
         trackButtonsArgs.forEach((args) => {
             let config = createButtonConfig(selectionInfo, ...args);
