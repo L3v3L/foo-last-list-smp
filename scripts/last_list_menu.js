@@ -36,7 +36,12 @@ function createButtonConfig(selectionInfo, label, metaIds, funcType) {
         return config;
     }
 
-    config.entryText += '\t' + values[0];
+    // Add tabe if there is a label
+    if (config.entryText) {
+        config.entryText += '\t';
+    }
+
+    config.entryText += values[0];
     config.url = buildUrl(funcType, [values[0]]);
     config.flags = MF_STRING;
 
@@ -89,6 +94,7 @@ function _lastListMenu(parent) {
 
     let trackButtonsArgs = [
         ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
+        ['Artist Radio', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
         ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
         ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
         ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
@@ -213,6 +219,9 @@ function _lastListMenu(parent) {
         lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Radio', func: () => { parent.run(buildUrl('USER_RADIO', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Mix', func: () => { parent.run(buildUrl('USER_MIX', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Recommended', func: () => { parent.run(buildUrl('USER_RECOMMENDATIONS', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
     }
     menu.newEntry({
