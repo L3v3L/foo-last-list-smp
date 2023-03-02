@@ -84,13 +84,13 @@ function buildUrl(type, meta) {
 function _lastListMenu(parent) {
     const menu = new _menu();
     // Get current selection and metadata
-    const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
-    const selectionInfo = selection ? selection.GetFileInfo() : null;
-
     menu.newEntry({ entryText: 'Search on Last.fm:', flags: MF_GRAYED });
     menu.newEntry({ entryText: 'sep' });
 
+    const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
+    const selectionInfo = selection ? selection.GetFileInfo() : null;
     if (selectionInfo) {
+        let selectedSubMenu = menu.newMenu('Selected Track');
         [
             ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
             ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
@@ -100,6 +100,7 @@ function _lastListMenu(parent) {
             let config = createButtonConfig(selectionInfo, ...args);
             menu.newEntry(
                 {
+                    menuName: selectedSubMenu,
                     entryText: config.entryText,
                     func: () => { parent.run(config.url) },
                     flags: config.flags
@@ -112,7 +113,7 @@ function _lastListMenu(parent) {
 
     let lastFMAccountSubMenu;
     if (lastfm_username) {
-        lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username); // It will be added just after the last declared entry!
+        lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
