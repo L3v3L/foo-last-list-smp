@@ -87,16 +87,37 @@ function _lastListMenu(parent) {
     menu.newEntry({ entryText: 'Search on Last.fm:', flags: MF_GRAYED });
     menu.newEntry({ entryText: 'sep' });
 
+    let trackButtonsArgs = [
+        ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
+        ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
+        ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
+        ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
+    ];
+
+    // Playing track Submenu
+    const currentPlaying = fb.IsPlaying ? fb.GetNowPlaying() : null;
+    const currentPlayingInfo = currentPlaying ? currentPlaying.GetFileInfo() : null;
+    if (currentPlayingInfo) {
+        let playingSubMenu = menu.newMenu('Playing Track');
+        trackButtonsArgs.forEach((args) => {
+            let config = createButtonConfig(currentPlayingInfo, ...args);
+            menu.newEntry(
+                {
+                    menuName: playingSubMenu,
+                    entryText: config.entryText,
+                    func: () => { parent.run(config.url) },
+                    flags: config.flags
+                }
+            );
+        });
+    }
+
+    // Selected track Submenu
     const selection = plman.ActivePlaylist !== -1 ? fb.GetFocusItem(true) : null;
     const selectionInfo = selection ? selection.GetFileInfo() : null;
-    if (selectionInfo) {
+    if (selectionInfo && !selection.Compare(currentPlaying)) {
         let selectedSubMenu = menu.newMenu('Selected Track');
-        [
-            ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
-            ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
-            ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
-            ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
-        ].forEach((args) => {
+        trackButtonsArgs.forEach((args) => {
             let config = createButtonConfig(selectionInfo, ...args);
             menu.newEntry(
                 {
@@ -109,8 +130,8 @@ function _lastListMenu(parent) {
         });
     }
 
+    // Last.fm Account Submenu
     let lastfm_username = window.GetProperty('lastfm_username', false);
-
     let lastFMAccountSubMenu;
     if (lastfm_username) {
         lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
