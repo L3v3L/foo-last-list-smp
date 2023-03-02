@@ -23,8 +23,6 @@ const hashCode = (str, seed = 0) => {
     return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 };
 
-
-
 function _lastList() {
     this.cachedUrls = [];
 
@@ -266,7 +264,6 @@ function _lastList() {
                             trackItems: trackItems
                         });
                         utils.WriteTextFile(cachedFilePath, json);
-
 
                         trackItems.forEach((track) => {
                             // if no title or artist, skip
