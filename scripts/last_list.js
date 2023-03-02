@@ -257,13 +257,15 @@ function _lastList() {
                             });
                         }
 
-                        // record cache
-                        let json = JSON.stringify({
-                            url: url,
-                            created_at: new Date().getTime(),
-                            trackItems: trackItems
-                        });
-                        utils.WriteTextFile(cachedFilePath, json);
+                        if (cacheTime) {
+                            // record cache
+                            let json = JSON.stringify({
+                                url: url,
+                                created_at: new Date().getTime(),
+                                trackItems: trackItems
+                            });
+                            utils.WriteTextFile(cachedFilePath, json);
+                        }
 
                         trackItems.forEach((track) => {
                             // if no title or artist, skip
