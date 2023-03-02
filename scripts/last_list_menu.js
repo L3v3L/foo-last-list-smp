@@ -135,8 +135,8 @@ function _lastListMenu(parent) {
     let lastFMAccountSubMenu;
     if (lastfm_username) {
         lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
-        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
+        menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
         menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
     }
 
@@ -155,14 +155,14 @@ function _lastListMenu(parent) {
 
     menu.newEntry({ entryText: 'sep' });
 
-    menu.newEntry({ entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
+    let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
+    menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
 
     menu.newEntry({
+        menuName: lastFMGlobalSubMenu,
         entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
     });
-    menu.newEntry({ entryText: 'By URL', func: () => { parent.run(null, null, null) } });
-
-    menu.newEntry({ entryText: 'sep' });
+    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run(null, null, null) } });
 
     return menu;
 }
