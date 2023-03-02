@@ -16,7 +16,6 @@ https://www.foobar2000.org/components/view/foo_youtube
     window.SetProperty('show_popup', messageTimeStamp);
 }
 
-
 const lastList = new _lastList();
 
 // Button

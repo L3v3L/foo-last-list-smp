@@ -108,6 +108,13 @@ function _lastListMenu(parent) {
         });
     }
 
+    let lastfm_username = window.GetProperty('lastfm_username', false);
+
+    if (lastfm_username) {
+        menu.newEntry({ entryText: 'sep' });
+        menu.newEntry({ entryText: 'My Loved', func: () => { parent.run(buildUrl('USER_LOVED', [lastfm_username])) } });
+        menu.newEntry({ entryText: 'My Top Tracks', func: () => { parent.run(buildUrl('USER_LIBRARY', [lastfm_username])) } });
+    }
     menu.newEntry({ entryText: 'sep' });
 
     menu.newEntry({ entryText: 'Top tracks this year', func: () => { parent.run(buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
@@ -115,7 +122,21 @@ function _lastListMenu(parent) {
     menu.newEntry({
         entryText: 'Top tracks previous year', func: () => { parent.run(buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
     });
-    menu.newEntry({ entryText: 'By url', func: () => { parent.run(null, null, null) } });
+    menu.newEntry({ entryText: 'By URL', func: () => { parent.run(null, null, null) } });
+
+    menu.newEntry({ entryText: 'sep' });
+
+    menu.newEntry({
+        entryText: !lastfm_username ? 'Set Last.fm Username' : 'Last.fm: ' + lastfm_username, func: () => {
+            try {
+                lastfm_username = utils.InputBox(window.ID, 'Last.fm Username', 'Enter your Last.fm username', lastfm_username ? lastfm_username : '');
+                if (lastfm_username) {
+                    window.SetProperty('lastfm_username', lastfm_username.trim());
+                }
+            } catch (e) {
+            }
+        }
+    });
 
     return menu;
 }
