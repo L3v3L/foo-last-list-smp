@@ -194,10 +194,10 @@ function _lastList() {
                                 }
 
                                 trackItems.push({
-                                    youtube: youtube,
+                                    youtube: youtube.length ? youtube[0][1] : null,
                                     title: title,
                                     artist: artist,
-                                    coverArt: coverArt
+                                    coverArt: coverArt.length && !coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? coverArt[0][1] : null
                                 });
 
                                 return true;
@@ -206,23 +206,23 @@ function _lastList() {
 
                         trackItems.forEach((track) => {
                             // if no title or artist, skip
-                            if (!track.title.length || !track.artist.length) {
+                            if (!track.title || !track.artist) {
                                 return true;
                             }
 
                             // get file from library
                             let file = indexedLibrary[`${track.artist.toLowerCase()} - ${track.title.toLowerCase()}`];
                             // if no file and no youtube link or no foo_youtube, skip
-                            if (!file && (!track.youtube.length || !hasYoutubeComponent)) {
+                            if (!file && (!track.youtube || !hasYoutubeComponent)) {
                                 return true;
                             }
 
                             // add to items to add
                             itemsToAdd.push({
-                                youtube: track.youtube.length ? track.youtube[0][1] : null,
+                                youtube: track.youtube,
                                 title: track.title,
                                 artist: track.artist,
-                                cover: track.coverArt && track.coverArt.length && !track.coverArt[0][1].includes('4128a6eb29f94943c9d206c08e625904.jpg') ? track.coverArt[0][1] : null,
+                                cover: track.coverArt,
                                 file: file
                             });
                         });
