@@ -145,6 +145,10 @@ function _lastList() {
                         let cachedResult = JSON.parse(cachedResultString);
                         if (cachedResult.created_at > (Date.now() - cacheTime)) {
                             cachedResult = this.decompressCache(cachedResult);
+                            if (!cachedResult.trackItems.length) {
+                                throw new Error('No tracks in cache');
+                            }
+                            // TODO refactor duplicate code
                             cachedResult.trackItems.forEach((track) => {
                                 // if no title or artist, skip
                                 if (!track.title || !track.artist) {
