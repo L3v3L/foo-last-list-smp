@@ -5,10 +5,14 @@ include('scripts\\button.js');
 include('scripts\\last_list_menu.js');
 
 // check if cache folder exists and create it if not
-let cachePath = fb.ProfilePath + "LastListCache\\";
-if (!utils.IsDirectory(cachePath)) {
-    let fso = new ActiveXObject('Scripting.FileSystemObject');
-    fso.CreateFolder(cachePath);
+try {
+    let cachePath = fb.ProfilePath + "LastListCache\\";
+    if (!utils.IsDirectory(cachePath)) {
+        let fso = new ActiveXObject('Scripting.FileSystemObject');
+        fso.CreateFolder(cachePath);
+    }
+} catch (e) {
+    console.log(e.message);
 }
 
 // show notice to user
