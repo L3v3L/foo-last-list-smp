@@ -252,7 +252,7 @@ function _lastList() {
                             });
                         }
 
-                        if (cacheTime) {
+                        if (cacheTime && trackItems.length) {
                             // record cache
                             let jsonString = JSON.stringify(this.compressCache({
                                 ver: 1,
