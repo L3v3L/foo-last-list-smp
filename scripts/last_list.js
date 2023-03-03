@@ -140,10 +140,10 @@ function _lastList() {
                 let cachedFilePath = cachePath + urlHash + ".json";
 
                 try {
-                    if (utils.IsFile(cachedFilePath)) {
+                    if (cacheTime && utils.IsFile(cachedFilePath)) {
                         let cachedResultString = utils.ReadTextFile(cachedFilePath);
                         let cachedResult = JSON.parse(cachedResultString);
-                        if (cachedResult.created_at > (Date.now() - cacheTime)) {
+                        if (cachedResult.created_at < (Date.now() - cacheTime)) {
                             cachedResult = this.decompressCache(cachedResult);
                             if (!cachedResult.trackItems.length) {
                                 throw new Error('No tracks in cache');
