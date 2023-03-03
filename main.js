@@ -4,6 +4,13 @@ include('scripts\\last_list.js');
 include('scripts\\button.js');
 include('scripts\\last_list_menu.js');
 
+// check if cache folder exists and create it if not
+let cachePath = fb.ProfilePath + "LastListCache\\";
+if (!utils.IsDirectory(cachePath)) {
+    let fso = new ActiveXObject('Scripting.FileSystemObject');
+    fso.CreateFolder(cachePath);
+}
+
 // show notice to user
 let messageTimeStamp = 1677757460;
 if (!utils.CheckComponent('foo_youtube', true) && window.GetProperty('show_popup', false) != messageTimeStamp) {
