@@ -15,7 +15,6 @@ try {
     console.log(e);
 }
 
-
 // show notice to user
 let messageTimeStamp = 1677757460;
 if (!utils.CheckComponent('foo_youtube', true) && window.GetProperty('show_popup', false) != messageTimeStamp) {

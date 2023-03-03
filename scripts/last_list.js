@@ -8,116 +8,6 @@ class InputError extends Error {
     }
 }
 
-const hashCode = (str, seed = 0) => {
-    let h1 = 0xdeadbeef ^ seed,
-        h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch; i < str.length; i++) {
-        ch = str.charCodeAt(i);
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-
-    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-};
-
-function compressCache(cacheObject) {
-    let artistCounts = {};
-    let coverArtCounts = {};
-
-    // make cacheObject an array withouth the keys
-    let trackItems = cacheObject.trackItems.map((track) => {
-        // process coverArt
-        if (track.coverArt) {
-            track.coverArt = track.coverArt.replace('https://lastfm.freetls.fastly.net/i/u/64s/', '-').replace(/\.jpg$/g, '-');
-
-            if (track.coverArt in coverArtCounts) {
-                coverArtCounts[track.coverArt]++;
-            } else {
-                coverArtCounts[track.coverArt] = 1;
-            }
-        }
-
-        if (track.artist in artistCounts) {
-            artistCounts[track.artist]++;
-        } else {
-            artistCounts[track.artist] = 1;
-        }
-
-        return [
-            track.youtube,
-            track.title,
-            track.artist,
-            track.coverArt,
-        ];
-    });
-    // keep only the artists with more than 1 track
-    let artists = Object.keys(artistCounts).filter((artist) => {
-        return artistCounts[artist] > 1;
-    });
-
-    let coverArts = Object.keys(coverArtCounts).filter((coverArt) => {
-        return coverArtCounts[coverArt] > 1;
-    });
-
-    // replace artist names with artist position in artistCounts array
-    cacheObject.trackItems = trackItems.map((track) => {
-        let artistIndex = artists.indexOf(track[2]);
-        if (artistIndex > -1) {
-            track[2] = artistIndex;
-        }
-
-        if (track[3] !== null) {
-            let coverArtIndex = coverArts.indexOf(track[3]);
-            if (coverArtIndex > -1) {
-                track[3] = coverArtIndex;
-            }
-        }
-
-        return track;
-    }).flat();
-
-    cacheObject.artists = artists;
-    cacheObject.coverArts = coverArts;
-    return cacheObject;
-}
-
-function decompressCache(cacheObject) {
-    // unflatten trackItems array
-    let trackItems = [];
-    for (let i = 0; i < cacheObject.trackItems.length; i += 4) {
-        trackItems.push(cacheObject.trackItems.slice(i, i + 4));
-    }
-
-    let artists = cacheObject.artists;
-    let coverArts = cacheObject.coverArts;
-
-    cacheObject.trackItems = trackItems.map((track) => {
-        if (!isNaN(track[2])) {
-            track[2] = artists[track[2]];
-        }
-
-        if (track[3] !== null) {
-            if (!isNaN(track[3])) {
-                track[3] = coverArts[track[3]];
-            }
-            track[3] = track[3].replace(/^-/, 'https://lastfm.freetls.fastly.net/i/u/64s/').replace(/-$/g, '.jpg');
-        } else {
-            track[3] = null;
-        }
-
-        return {
-            'youtube': track[0],
-            'title': track[1],
-            'artist': track[2],
-            'coverArt': track[3]
-        };
-    });
-
-    return cacheObject;
-}
 
 function _lastList() {
     this.cachedUrls = [];
@@ -246,14 +136,14 @@ function _lastList() {
 
                 let cachePath = fb.ProfilePath + "LastListCache\\";
                 // check if cache valid
-                let urlHash = hashCode(urlToUse);
+                let urlHash = this.hashCode(urlToUse);
                 let cachedFilePath = cachePath + urlHash + ".json";
 
                 if (utils.IsFile(cachedFilePath)) {
                     let cachedResultString = utils.ReadTextFile(cachedFilePath);
                     let cachedResult = JSON.parse(cachedResultString);
                     if (cachedResult.created_at > (Date.now() - cacheTime)) {
-                        cachedResult = decompressCache(cachedResult);
+                        cachedResult = this.decompressCache(cachedResult);
                         cachedResult.trackItems.forEach((track) => {
                             // if no title or artist, skip
                             if (!track.title || !track.artist) {
@@ -356,7 +246,7 @@ function _lastList() {
 
                         if (cacheTime) {
                             // record cache
-                            let jsonString = JSON.stringify(compressCache({
+                            let jsonString = JSON.stringify(this.compressCache({
                                 ver: 1,
                                 url: url,
                                 created_at: new Date().getTime(),
@@ -481,4 +371,116 @@ function _lastList() {
             .replace(/&nbsp;/g, " ")
             .trim();
     };
+
+    this.hashCode = (str, seed = 0) => {
+        let h1 = 0xdeadbeef ^ seed,
+            h2 = 0x41c6ce57 ^ seed;
+        for (let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+        return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+    };
+
+    this.compressCache = (cacheObject) => {
+        let artistCounts = {};
+        let coverArtCounts = {};
+
+        // make cacheObject an array withouth the keys
+        let trackItems = cacheObject.trackItems.map((track) => {
+            // process coverArt
+            if (track.coverArt) {
+                track.coverArt = track.coverArt.replace('https://lastfm.freetls.fastly.net/i/u/64s/', '-').replace(/\.jpg$/g, '-');
+
+                if (track.coverArt in coverArtCounts) {
+                    coverArtCounts[track.coverArt]++;
+                } else {
+                    coverArtCounts[track.coverArt] = 1;
+                }
+            }
+
+            if (track.artist in artistCounts) {
+                artistCounts[track.artist]++;
+            } else {
+                artistCounts[track.artist] = 1;
+            }
+
+            return [
+                track.youtube,
+                track.title,
+                track.artist,
+                track.coverArt,
+            ];
+        });
+        // keep only the artists with more than 1 track
+        let artists = Object.keys(artistCounts).filter((artist) => {
+            return artistCounts[artist] > 1;
+        });
+
+        let coverArts = Object.keys(coverArtCounts).filter((coverArt) => {
+            return coverArtCounts[coverArt] > 1;
+        });
+
+        // replace artist names with artist position in artistCounts array
+        cacheObject.trackItems = trackItems.map((track) => {
+            let artistIndex = artists.indexOf(track[2]);
+            if (artistIndex > -1) {
+                track[2] = artistIndex;
+            }
+
+            if (track[3] !== null) {
+                let coverArtIndex = coverArts.indexOf(track[3]);
+                if (coverArtIndex > -1) {
+                    track[3] = coverArtIndex;
+                }
+            }
+
+            return track;
+        }).flat();
+
+        cacheObject.artists = artists;
+        cacheObject.coverArts = coverArts;
+        return cacheObject;
+    }
+
+    this.decompressCache = (cacheObject) => {
+        // unflatten trackItems array
+        let trackItems = [];
+        for (let i = 0; i < cacheObject.trackItems.length; i += 4) {
+            trackItems.push(cacheObject.trackItems.slice(i, i + 4));
+        }
+
+        let artists = cacheObject.artists;
+        let coverArts = cacheObject.coverArts;
+
+        cacheObject.trackItems = trackItems.map((track) => {
+            if (!isNaN(track[2])) {
+                track[2] = artists[track[2]];
+            }
+
+            if (track[3] !== null) {
+                if (!isNaN(track[3])) {
+                    track[3] = coverArts[track[3]];
+                }
+                track[3] = track[3].replace(/^-/, 'https://lastfm.freetls.fastly.net/i/u/64s/').replace(/-$/g, '.jpg');
+            } else {
+                track[3] = null;
+            }
+
+            return {
+                'youtube': track[0],
+                'title': track[1],
+                'artist': track[2],
+                'coverArt': track[3]
+            };
+        });
+
+        return cacheObject;
+    }
+
 }
