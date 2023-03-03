@@ -139,37 +139,41 @@ function _lastList() {
                 let urlHash = this.hashCode(urlToUse);
                 let cachedFilePath = cachePath + urlHash + ".json";
 
-                if (utils.IsFile(cachedFilePath)) {
-                    let cachedResultString = utils.ReadTextFile(cachedFilePath);
-                    let cachedResult = JSON.parse(cachedResultString);
-                    if (cachedResult.created_at > (Date.now() - cacheTime)) {
-                        cachedResult = this.decompressCache(cachedResult);
-                        cachedResult.trackItems.forEach((track) => {
-                            // if no title or artist, skip
-                            if (!track.title || !track.artist) {
-                                return true;
-                            }
+                try {
+                    if (utils.IsFile(cachedFilePath)) {
+                        let cachedResultString = utils.ReadTextFile(cachedFilePath);
+                        let cachedResult = JSON.parse(cachedResultString);
+                        if (cachedResult.created_at > (Date.now() - cacheTime)) {
+                            cachedResult = this.decompressCache(cachedResult);
+                            cachedResult.trackItems.forEach((track) => {
+                                // if no title or artist, skip
+                                if (!track.title || !track.artist) {
+                                    return true;
+                                }
 
-                            // get file from library
-                            let file = indexedLibrary[`${track.artist.toLowerCase()} - ${track.title.toLowerCase()}`];
-                            // if no file and no youtube link or no foo_youtube, skip
-                            if (!file && (!track.youtube || !hasYoutubeComponent)) {
-                                return true;
-                            }
+                                // get file from library
+                                let file = indexedLibrary[`${track.artist.toLowerCase()} - ${track.title.toLowerCase()}`];
+                                // if no file and no youtube link or no foo_youtube, skip
+                                if (!file && (!track.youtube || !hasYoutubeComponent)) {
+                                    return true;
+                                }
 
-                            // add to items to add
-                            itemsToAdd.push({
-                                youtube: track.youtube,
-                                title: track.title,
-                                artist: track.artist,
-                                cover: track.coverArt,
-                                file: file
+                                // add to items to add
+                                itemsToAdd.push({
+                                    youtube: track.youtube,
+                                    title: track.title,
+                                    artist: track.artist,
+                                    cover: track.coverArt,
+                                    file: file
+                                });
                             });
-                        });
-                        this.log(`Cached Used`);
-                        resolve();
-                        return;
+                            this.log(`Cached Used`);
+                            resolve();
+                            return;
+                        }
                     }
+                } catch (e) {
+
                 }
 
                 xmlhttp.open("GET", urlToUse, true);
@@ -252,7 +256,11 @@ function _lastList() {
                                 created_at: new Date().getTime(),
                                 trackItems: trackItems
                             }));
-                            utils.WriteTextFile(cachedFilePath, jsonString);
+                            try {
+                                utils.WriteTextFile(cachedFilePath, jsonString);
+                            } catch (e) {
+
+                            }
                         }
 
                         trackItems.forEach((track) => {
