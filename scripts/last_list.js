@@ -122,7 +122,7 @@ function decompressCache(cacheObject) {
 function _lastList() {
     this.cachedUrls = [];
 
-    this.run = (url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000) => {
+    this.run = ({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 }) => {
         try {
             if (!url) {
                 try {

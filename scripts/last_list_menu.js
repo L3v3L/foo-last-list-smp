@@ -42,48 +42,56 @@ function createButtonConfig(selectionInfo, label, metaIds, funcType) {
     }
 
     config.entryText += values[0];
-    config.url = buildUrl(funcType, [values[0]]);
+    config.runValues = buildUrl(funcType, [values[0]]);
     config.flags = MF_STRING;
 
     return config;
 }
 
 function buildUrl(type, meta) {
+    let timeConstants = {
+        'h': 3600000,
+        'd': 86400000,
+        'w': 604800000,
+        'm': 2592000000,
+        'y': 31536000000
+    };
+
     if (meta.length == 1) {
         switch (type) {
             case 'TAG_TRACKS':
-                return `https://www.last.fm/tag/${encodeURIComponent(meta[0])}/tracks`;
+                return { url: `https://www.last.fm/tag/${encodeURIComponent(meta[0])}/tracks`, cacheTime: window.GetProperty('CACHE_TIME_TAG_TRACKS', timeConstants.w), pages: 1 }
             case 'ARTIST_TRACKS':
-                return `https://www.last.fm/music/${encodeURIComponent(meta[0])}/+tracks`;
+                return { url: `https://www.last.fm/music/${encodeURIComponent(meta[0])}/+tracks`, cacheTime: window.GetProperty('CACHE_TIME_ARTIST_TRACKS', timeConstants.m), pages: 1 }
             case 'ARTIST_RADIO':
-                return `https://www.last.fm/player/station/music/${encodeURIComponent(meta[0])}`;
+                return { url: `https://www.last.fm/player/station/music/${encodeURIComponent(meta[0])}`, cacheTime: window.GetProperty('CACHE_TIME_ARTIST_RADIO', 0), pages: 2 }
             case 'USER_RADIO':
-                return `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/library`;
+                return { url: `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/library`, cacheTime: window.GetProperty('CACHE_TIME_USER_RADIO', 0), pages: 2 }
             case 'USER_MIX':
-                return `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/mix`;
+                return { url: `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/mix`, cacheTime: window.GetProperty('CACHE_TIME_USER_MIX', 0), pages: 2 }
             case 'USER_RECOMMENDATIONS':
-                return `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/recommended`;
+                return { url: `https://www.last.fm/player/station/user/${encodeURIComponent(meta[0])}/recommended`, cacheTime: window.GetProperty('CACHE_TIME_USER_RECOMMENDATIONS', 0), pages: 2 }
             case 'USER_LIBRARY':
-                return `https://www.last.fm/user/${encodeURIComponent(meta[0])}/library/tracks`;
+                return { url: `https://www.last.fm/user/${encodeURIComponent(meta[0])}/library/tracks`, cacheTime: window.GetProperty('CACHE_TIME_USER_LIBRARY', timeConstants.m), pages: 1 }
             case 'USER_LOVED':
-                return `https://www.last.fm/user/${encodeURIComponent(meta[0])}/loved`;
+                return { url: `https://www.last.fm/user/${encodeURIComponent(meta[0])}/loved`, cacheTime: window.GetProperty('CACHE_TIME_USER_LOVED', timeConstants.h), pages: 1 }
             default:
-                return null;
+                return { url: null, cacheTime: 0, pages: 1 }
         }
     }
 
     if (meta.length == 2) {
         switch (type) {
             case 'ALBUM_TRACKS':
-                return `https://www.last.fm/music/${encodeURIComponent(meta[0])}/${encodeURIComponent(meta[1])}`;
+                return { url: `https://www.last.fm/music/${encodeURIComponent(meta[0])}/${encodeURIComponent(meta[1])}`, cacheTime: window.GetProperty('CACHE_TIME_ALBUM_TRACKS', timeConstants.y), pages: 1 }
             case 'USER_PLAYLIST':
-                return `https://www.last.fm/user/${encodeURIComponent(meta[0])}/playlists/${encodeURIComponent(meta[1])}`;
+                return { url: `https://www.last.fm/user/${encodeURIComponent(meta[0])}/playlists/${encodeURIComponent(meta[1])}`, cacheTime: window.GetProperty('CACHE_TIME_USER_PLAYLIST', timeConstants.h), pages: 1 }
             default:
-                return null;
+                return { url: null, cacheTime: 0, pages: 1 }
         }
     }
 
-    return null;
+    return { url: null, cacheTime: 0, pages: 1 };
 }
 
 function _lastListMenu(parent) {
@@ -111,7 +119,7 @@ function _lastListMenu(parent) {
                 {
                     menuName: playingSubMenu,
                     entryText: config.entryText,
-                    func: () => { parent.run(config.url) },
+                    func: () => { parent.run(config.runValues) },
                     flags: config.flags
                 }
             );
@@ -129,18 +137,16 @@ function _lastListMenu(parent) {
                 {
                     menuName: selectedSubMenu,
                     entryText: config.entryText,
-                    func: () => { parent.run(config.url) },
+                    func: () => { parent.run(config.runValues) },
                     flags: config.flags
                 }
             );
         });
     }
 
-
-
     menu.newEntry({ entryText: 'sep' });
 
-    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run(null, null, null) } });
+    menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run({}) } });
     let customUserSubMenu = menu.newMenu('Custom User');
     menu.newEntry({
         menuName: customUserSubMenu, entryText: 'Top Tracks', func: () => {
