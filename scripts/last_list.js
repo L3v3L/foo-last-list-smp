@@ -177,7 +177,7 @@ function _lastList() {
                         }
                     }
                 } catch (e) {
-
+                    this.log(`Error - ${e.message}`);
                 }
 
                 xmlhttp.open("GET", urlToUse, true);
@@ -263,7 +263,7 @@ function _lastList() {
                             try {
                                 utils.WriteTextFile(cachedFilePath, jsonString);
                             } catch (e) {
-
+                                this.log(`Error - ${e.message}`);
                             }
                         }
 

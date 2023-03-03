@@ -12,7 +12,7 @@ try {
         fso.CreateFolder(cachePath);
     }
 } catch (e) {
-    console.log(e);
+    console.log(e.message);
 }
 
 // show notice to user
