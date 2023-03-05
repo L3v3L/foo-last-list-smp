@@ -108,9 +108,14 @@ class LastListMenu {
         let customUserSubMenu = menu.newMenu('Custom User');
         menu = this.createQuestionButton(menu, customUserSubMenu, 'Top Tracks', ['Enter Last.fm user'], 'USER_LIBRARY');
         menu = this.createQuestionButton(menu, customUserSubMenu, 'Loved Tracks', ['Enter Last.fm user'], 'USER_LOVED');
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Mix', ['Enter Last.fm user'], 'USER_MIX');
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Radio', ['Enter Last.fm user'], 'USER_RADIO');
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Recommendations', ['Enter Last.fm user'], 'USER_RECOMMENDATIONS');
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Neighbours', ['Enter Last.fm user'], 'USER_NEIGHBOURS');
 
         let customArtistSubMenu = menu.newMenu('Custom Artist');
         menu = this.createQuestionButton(menu, customArtistSubMenu, 'Top Tracks', ['Enter Artist'], 'ARTIST_TRACKS');
+        menu = this.createQuestionButton(menu, customArtistSubMenu, 'Random Tracks', ['Enter Artist'], 'ARTIST_RADIO');
         menu = this.createQuestionButton(menu, customArtistSubMenu, 'Similar Artists', ['Enter Artist'], 'ARTIST_SIMILAR');
         menu = this.createQuestionButton(menu, customArtistSubMenu, 'Album', ['Enter Artist', 'Enter Album'], 'ALBUM_TRACKS');
 
