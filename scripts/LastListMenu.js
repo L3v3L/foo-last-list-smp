@@ -46,9 +46,6 @@ class LastListMenu {
     static getMenu() {
         const menu = new _menu();
         // Get current selection and metadata
-        menu.newEntry({ entryText: 'Search on Last.fm:', flags: MF_GRAYED });
-        menu.newEntry({ entryText: 'sep' });
-
         let trackButtonsArgs = [
             ['Artist Top', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
             ['Artist Shuffle', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
@@ -108,6 +105,7 @@ class LastListMenu {
         menu.newEntry({ entryText: 'sep' });
 
         menu.newEntry({ entryText: 'Custom URL', func: () => { (new LastList()).run() } });
+
         let customUserSubMenu = menu.newMenu('Custom User');
         menu.newEntry({
             menuName: customUserSubMenu, entryText: 'Top Tracks', func: () => {
@@ -183,11 +181,13 @@ class LastListMenu {
 
         menu.newEntry({ entryText: 'sep' });
         let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
-        menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { LastListFactory.create('TAG_TRACKS', [new Date().getFullYear().toString()]).run() } });
+        let thisYearString = new Date().getFullYear().toString();
+        menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: `Top ${thisYearString}`, func: () => { LastListFactory.create('TAG_TRACKS', [thisYearString]).run() } });
 
+        let lastYearString = (new Date().getFullYear() - 1).toString();
         menu.newEntry({
             menuName: lastFMGlobalSubMenu,
-            entryText: 'Top tracks previous year', func: () => { LastListFactory.create('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()]).run() }
+            entryText: `Top ${lastYearString}`, func: () => { LastListFactory.create('TAG_TRACKS', [lastYearString]).run() }
         });
 
         // Last.fm Account Submenu
