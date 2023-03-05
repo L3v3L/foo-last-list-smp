@@ -6,7 +6,6 @@ class LastListFactory {
 
         let map = {
             'TAG_TRACKS': { url: `https://www.last.fm/tag/@@parameter@@/tracks`, cacheTime: lastListCache.timeConstants.w },
-            'TAG_TRACKS': { url: `https://www.last.fm/tag/@@parameter@@/tracks`, cacheTime: lastListCache.timeConstants.w },
             'ARTIST_TRACKS': { url: `https://www.last.fm/music/@@parameter@@/+tracks`, cacheTime: lastListCache.timeConstants.m },
             'ARTIST_RADIO': { url: `https://www.last.fm/player/station/music/@@parameter@@`, cacheTime: 0, pages: 2 },
             'ARTIST_SIMILAR': { url: `https://www.last.fm/player/station/music/@@parameter@@/+similar`, cacheTime: 0, pages: 2 },
@@ -19,7 +18,7 @@ class LastListFactory {
             'USER_LOVED': { url: `https://www.last.fm/user/@@parameter@@/loved`, cacheTime: lastListCache.timeConstants.h },
             'ALBUM_TRACKS': { url: `https://www.last.fm/music/@@parameter@@/@@parameter@@`, cacheTime: lastListCache.timeConstants.y },
             'USER_PLAYLIST': { url: `https://www.last.fm/user/@@parameter@@/playlists/@@parameter@@`, cacheTime: lastListCache.timeConstants.h },
-            'ARTIST_INFO': { url: `https://www.last.fm/music?seed=@@parameter@@`, cacheTime: lastListCache.timeConstants.w },
+            //'ARTIST_INFO': { url: `https://www.last.fm/music?seed=@@parameter@@`, cacheTime: lastListCache.timeConstants.w },
         };
 
         // if type is not in map, return null

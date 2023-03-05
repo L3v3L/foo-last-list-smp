@@ -144,23 +144,23 @@ class LastListMenu {
             }
         });
         menu.newEntry({
-            menuName: customArtistSubMenu, entryText: 'Album', func: () => {
+            menuName: customArtistSubMenu, entryText: 'Similar Artists', func: () => {
                 try {
                     let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
-                    let customValueAlbum = utils.InputBox(window.ID, 'Last.fm Album', 'Enter Last.fm Album', '');
-                    if (customValueArtist && customValueAlbum) {
-                        LastListFactory.create('ALBUM_TRACKS', [customValueArtist, customValueAlbum]).run();
+                    if (customValueArtist) {
+                        LastListFactory.create('ARTIST_SIMILAR', [customValueArtist]).run();
                     }
                 } catch (e) {
                 }
             }
         });
         menu.newEntry({
-            menuName: customArtistSubMenu, entryText: 'Similar Artists', func: () => {
+            menuName: customArtistSubMenu, entryText: 'Album', func: () => {
                 try {
                     let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
-                    if (customValueArtist) {
-                        LastListFactory.create('ARTIST_SIMILAR', [customValueArtist]).run();
+                    let customValueAlbum = utils.InputBox(window.ID, 'Last.fm Album', 'Enter Last.fm Album', '');
+                    if (customValueArtist && customValueAlbum) {
+                        LastListFactory.create('ALBUM_TRACKS', [customValueArtist, customValueAlbum]).run();
                     }
                 } catch (e) {
                 }
