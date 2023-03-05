@@ -8,14 +8,14 @@ class LastListMenu {
 
     static createButtonConfig(selectionInfo, label, metaIds, funcType) {
         let values = LastListFoobar.getMetaValues(selectionInfo, metaIds);
+        if (!values.length) {
+            return null;
+        }
+
         let config = {
             entryText: label,
             flags: MF_GRAYED
         };
-
-        if (!values.length) {
-            return config;
-        }
 
         // Add tabe if there is a label
         if (config.entryText) {
@@ -23,7 +23,7 @@ class LastListMenu {
         }
 
         config.entryText += values[0];
-        config.runValues = LastListFactory.create(funcType, [values[0]]);
+        config.lastList = LastListFactory.create(funcType, [values[0]]);
         config.flags = MF_STRING;
 
         return config;
@@ -48,16 +48,21 @@ class LastListMenu {
         const currentPlayingInfo = currentPlaying ? currentPlaying.GetFileInfo() : null;
         if (currentPlayingInfo) {
             let playingSubMenu = menu.newMenu('Playing Track');
-            trackButtonsArgs.forEach((args) => {
+            trackButtonsArgs.every((args) => {
                 let config = LastListMenu.createButtonConfig(currentPlayingInfo, ...args);
+                if (!config) {
+                    return true;
+                }
                 menu.newEntry(
                     {
                         menuName: playingSubMenu,
                         entryText: config.entryText,
-                        func: () => { (new LastList(config.runValues)).run() },
+                        func: () => { config.lastList.run() },
                         flags: config.flags
                     }
                 );
+
+                return true;
             });
         }
 
@@ -66,16 +71,21 @@ class LastListMenu {
         const selectionInfo = selection ? selection.GetFileInfo() : null;
         if (selectionInfo && (!currentPlaying || !selection.Compare(currentPlaying))) {
             let selectedSubMenu = menu.newMenu('Selected Track');
-            trackButtonsArgs.forEach((args) => {
+            trackButtonsArgs.every((args) => {
                 let config = LastListMenu.createButtonConfig(selectionInfo, ...args);
+                if (!config) {
+                    return true;
+                }
                 menu.newEntry(
                     {
                         menuName: selectedSubMenu,
                         entryText: config.entryText,
-                        func: () => { (new LastList(config.runValues)).run() },
+                        func: () => { config.lastList.run() },
                         flags: config.flags
                     }
                 );
+
+                return true;
             });
         }
 
