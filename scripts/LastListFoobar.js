@@ -21,4 +21,12 @@ class LastListFoobar {
         values = [...new Set(values)];
         return values;
     }
+
+    static getFirstMetaValue(fileInfo, tagIds) {
+        let values = LastListFoobar.getMetaValues(fileInfo, tagIds);
+        if (values.length > 0) {
+            return values[0];
+        }
+        return null;
+    }
 }

@@ -6,8 +6,24 @@ include('LastListFoobar.js');
 
 class LastListMenu {
 
-    static createButtonConfig(selectionInfo, label, metaIds, funcType) {
-        let values = LastListFoobar.getMetaValues(selectionInfo, metaIds);
+    static createButtonConfig(selectionInfo, label, metaIdsArray, funcType) {
+        // if metaIdsArray is not an array of arrays, make it one
+        if (!Array.isArray(metaIdsArray[0])) {
+            metaIdsArray = [metaIdsArray];
+        }
+
+        let values = [];
+        metaIdsArray.every((metaIdsCollection) => {
+            let metaValue = LastListFoobar.getFirstMetaValue(selectionInfo, metaIdsCollection);
+            if (!metaValue) {
+                values = [];
+                return false;
+            }
+
+            values.push(metaValue);
+            return true;
+        });
+
         if (!values.length) {
             return null;
         }
@@ -21,8 +37,8 @@ class LastListMenu {
             config.entryText += '\t';
         }
 
-        config.entryText += values[0];
-        config.lastList = LastListFactory.create(funcType, [values[0]]);
+        config.entryText += values[values.length - 1];
+        config.lastList = LastListFactory.create(funcType, values);
 
         return config;
     }
@@ -34,8 +50,10 @@ class LastListMenu {
         menu.newEntry({ entryText: 'sep' });
 
         let trackButtonsArgs = [
-            ['Artist tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
-            ['Artist Radio', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
+            ['Artist top tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
+            ['Artist random tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
+            ['Artist radio', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_SIMILAR'],
+            ['Track Album', [['ARTIST', 'ALBUMARTIST'], ['ALBUM']], 'ALBUM_TRACKS'],
             ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
             ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
             ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
