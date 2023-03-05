@@ -14,7 +14,6 @@ class LastListMenu {
 
         let config = {
             entryText: label,
-            flags: MF_GRAYED
         };
 
         // Add tabe if there is a label
@@ -24,7 +23,6 @@ class LastListMenu {
 
         config.entryText += values[0];
         config.lastList = LastListFactory.create(funcType, [values[0]]);
-        config.flags = MF_STRING;
 
         return config;
     }
@@ -58,7 +56,7 @@ class LastListMenu {
                         menuName: playingSubMenu,
                         entryText: config.entryText,
                         func: () => { config.lastList.run() },
-                        flags: config.flags
+                        flags: MF_STRING
                     }
                 );
 
@@ -81,7 +79,7 @@ class LastListMenu {
                         menuName: selectedSubMenu,
                         entryText: config.entryText,
                         func: () => { config.lastList.run() },
-                        flags: config.flags
+                        flags: MF_STRING
                     }
                 );
 
