@@ -159,7 +159,7 @@ class LastListMenu {
                 try {
                     let answers = [];
                     questions.forEach((question) => {
-                        answers.push(utils.InputBox(window.ID, label, question, ''));
+                        answers.push(utils.InputBox(window.ID, question, label, ''));
                     });
                     if (answers.length !== questions.length) {
                         return;
