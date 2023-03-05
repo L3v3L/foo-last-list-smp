@@ -44,7 +44,7 @@ class LastListMenu {
     }
 
     static getMenu() {
-        const menu = new _menu();
+        let menu = new _menu();
         // Get current selection and metadata
         let trackButtonsArgs = [
             ['Artist Top', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
@@ -103,81 +103,18 @@ class LastListMenu {
         }
 
         menu.newEntry({ entryText: 'sep' });
-
         menu.newEntry({ entryText: 'Custom URL', func: () => { (new LastList()).run() } });
 
         let customUserSubMenu = menu.newMenu('Custom User');
-        menu.newEntry({
-            menuName: customUserSubMenu, entryText: 'Top Tracks', func: () => {
-                try {
-                    let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
-                    if (customValue) {
-                        LastListFactory.create('USER_LIBRARY', [customValue]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
-
-        menu.newEntry({
-            menuName: customUserSubMenu, entryText: 'Loved Tracks', func: () => {
-                try {
-                    let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
-                    if (customValue) {
-                        LastListFactory.create('USER_LOVED', [customValue]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Top Tracks', ['Enter Last.fm user'], 'USER_LIBRARY');
+        menu = this.createQuestionButton(menu, customUserSubMenu, 'Loved Tracks', ['Enter Last.fm user'], 'USER_LOVED');
 
         let customArtistSubMenu = menu.newMenu('Custom Artist');
-        menu.newEntry({
-            menuName: customArtistSubMenu, entryText: 'Top Tracks', func: () => {
-                try {
-                    let customValue = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
-                    if (customValue) {
-                        LastListFactory.create('ARTIST_TRACKS', [customValue]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
-        menu.newEntry({
-            menuName: customArtistSubMenu, entryText: 'Similar Artists', func: () => {
-                try {
-                    let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
-                    if (customValueArtist) {
-                        LastListFactory.create('ARTIST_SIMILAR', [customValueArtist]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
-        menu.newEntry({
-            menuName: customArtistSubMenu, entryText: 'Album', func: () => {
-                try {
-                    let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
-                    let customValueAlbum = utils.InputBox(window.ID, 'Last.fm Album', 'Enter Last.fm Album', '');
-                    if (customValueArtist && customValueAlbum) {
-                        LastListFactory.create('ALBUM_TRACKS', [customValueArtist, customValueAlbum]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
+        menu = this.createQuestionButton(menu, customArtistSubMenu, 'Top Tracks', ['Enter Artist'], 'ARTIST_TRACKS');
+        menu = this.createQuestionButton(menu, customArtistSubMenu, 'Similar Artists', ['Enter Artist'], 'ARTIST_SIMILAR');
+        menu = this.createQuestionButton(menu, customArtistSubMenu, 'Album', ['Enter Artist', 'Enter Album'], 'ALBUM_TRACKS');
 
-        menu.newEntry({
-            entryText: 'Custom Tag', func: () => {
-                try {
-                    let customValue = utils.InputBox(window.ID, 'Last.fm Tag', 'Enter Last.fm Tag', '');
-                    if (customValue) {
-                        LastListFactory.create('TAG_TRACKS', [customValue]).run();
-                    }
-                } catch (e) {
-                }
-            }
-        });
+        menu = this.createQuestionButton(menu, 'main', 'Custom Tag', ['Enter Last.fm Tag'], 'TAG_TRACKS');
 
         menu.newEntry({ entryText: 'sep' });
         let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
@@ -185,10 +122,7 @@ class LastListMenu {
         menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: `Top ${thisYearString}`, func: () => { LastListFactory.create('TAG_TRACKS', [thisYearString]).run() } });
 
         let lastYearString = (new Date().getFullYear() - 1).toString();
-        menu.newEntry({
-            menuName: lastFMGlobalSubMenu,
-            entryText: `Top ${lastYearString}`, func: () => { LastListFactory.create('TAG_TRACKS', [lastYearString]).run() }
-        });
+        menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: `Top ${lastYearString}`, func: () => { LastListFactory.create('TAG_TRACKS', [lastYearString]).run() } });
 
         // Last.fm Account Submenu
         let lastfm_username = window.GetProperty('lastfm_username', false);
@@ -211,6 +145,26 @@ class LastListMenu {
                     if (lastfm_username) {
                         window.SetProperty('lastfm_username', lastfm_username.trim());
                     }
+                } catch (e) {
+                }
+            }
+        });
+
+        return menu;
+    }
+
+    static createQuestionButton(menu, submenu, label, questions, factory) {
+        menu.newEntry({
+            menuName: submenu, entryText: label, func: () => {
+                try {
+                    let answers = [];
+                    questions.forEach((question) => {
+                        answers.push(utils.InputBox(window.ID, label, question, ''));
+                    });
+                    if (answers.length !== questions.length) {
+                        return;
+                    }
+                    LastListFactory.create(factory, answers).run();
                 } catch (e) {
                 }
             }
