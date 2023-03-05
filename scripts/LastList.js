@@ -1,18 +1,14 @@
 'use strict';
 
-// InputError
-class InputError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "InputError";
+include('InputError.js');
+include('LastListHelpers.js');
+
+class LastList {
+    constructor() {
+        this.cachedUrls = [];
     }
-}
 
-
-function _lastList() {
-    this.cachedUrls = [];
-
-    this.run = ({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 } = {}) => {
+    run({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 } = {}) {
         try {
             if (!url) {
                 try {
@@ -85,11 +81,11 @@ function _lastList() {
         }
     };
 
-    this.log = (msg) => {
+    log(msg) {
         console.log('Last List: ' + msg);
     };
 
-    this.scrapeUrl = (url, startPage, pages, playlistName, cacheTime) => {
+    scrapeUrl(url, startPage, pages, playlistName, cacheTime) {
         // create an index of the library
         let indexedLibrary = {};
         fb.GetLibraryItems().Convert().every((item) => {
@@ -136,7 +132,7 @@ function _lastList() {
 
                 let cachePath = fb.ProfilePath + "LastListCache\\";
                 // check if cache valid
-                let urlHash = this.hashCode(urlToUse);
+                let urlHash = LastListHelpers.hashCode(urlToUse);
                 let cachedFilePath = cachePath + urlHash + ".json";
 
                 try {
@@ -144,7 +140,7 @@ function _lastList() {
                         let cachedResultString = utils.ReadTextFile(cachedFilePath);
                         let cachedResult = JSON.parse(cachedResultString);
                         if (cachedResult.created_at > (Date.now() - cacheTime)) {
-                            cachedResult = this.decompressCache(cachedResult);
+                            cachedResult = LastListCache.decompressCache(cachedResult);
                             if (!cachedResult.trackItems.length) {
                                 throw new Error('No tracks in cache');
                             }
@@ -229,8 +225,8 @@ function _lastList() {
 
                                 if (title.length && artist.length) {
                                     // clean strings
-                                    title = this.cleanString(decodeURI(title[0][1]));
-                                    artist = this.cleanString(decodeURI(artist[0][1]));
+                                    title = LastListHelpers.cleanString(decodeURI(title[0][1]));
+                                    artist = LastListHelpers.cleanString(decodeURI(artist[0][1]));
                                 } else { // fallback to href if youtube data element is not available
                                     let fallbackData = [...match[0].matchAll(regexFallBack)];
                                     if (!fallbackData.length) {
@@ -254,7 +250,7 @@ function _lastList() {
 
                         if (cacheTime && trackItems.length) {
                             // record cache
-                            let jsonString = JSON.stringify(this.compressCache({
+                            let jsonString = JSON.stringify(LastListCache.compressCache({
                                 ver: 1,
                                 url: url,
                                 created_at: new Date().getTime(),
@@ -319,7 +315,7 @@ function _lastList() {
         });
     };
 
-    this.addItemsToPlaylist = (items, playlist) => {
+    addItemsToPlaylist(items, playlist) {
         // remove duplicates
         items = [...new Set(items)];
         // check if there are items to add
@@ -369,130 +365,4 @@ function _lastList() {
             plman.InsertPlaylistItems(playlist, plman.PlaylistItemCount(playlist), queue);
         }
     };
-
-    this.cleanString = (str) => {
-        return str.replace(/&#39;/g, "'")
-            .replace(/&#38;/g, "&")
-            .replace(/&#34;/g, "\"")
-            .replace(/&#60;/g, "<")
-            .replace(/&#62;/g, ">")
-            .replace(/&amp;/g, "&")
-            .replace(/&quot;/g, "\"")
-            .replace(/&lt;/g, "<")
-            .replace(/&gt;/g, ">")
-            .replace(/&nbsp;/g, " ")
-            .trim();
-    };
-
-    this.hashCode = (str, seed = 0) => {
-        let h1 = 0xdeadbeef ^ seed,
-            h2 = 0x41c6ce57 ^ seed;
-        for (let i = 0, ch; i < str.length; i++) {
-            ch = str.charCodeAt(i);
-            h1 = Math.imul(h1 ^ ch, 2654435761);
-            h2 = Math.imul(h2 ^ ch, 1597334677);
-        }
-
-        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-
-        return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-    };
-
-    this.compressCache = (cacheObject) => {
-        let artistCounts = {};
-        let coverArtCounts = {};
-
-        // make cacheObject an array withouth the keys
-        let trackItems = cacheObject.trackItems.map((track) => {
-            // process coverArt
-            if (track.coverArt) {
-                track.coverArt = track.coverArt.replace('https://lastfm.freetls.fastly.net/i/u/64s/', '-').replace(/\.jpg$/g, '-');
-
-                if (track.coverArt in coverArtCounts) {
-                    coverArtCounts[track.coverArt]++;
-                } else {
-                    coverArtCounts[track.coverArt] = 1;
-                }
-            }
-
-            if (track.artist in artistCounts) {
-                artistCounts[track.artist]++;
-            } else {
-                artistCounts[track.artist] = 1;
-            }
-
-            return [
-                track.youtube,
-                track.title,
-                track.artist,
-                track.coverArt,
-            ];
-        });
-        // keep only the artists with more than 1 track
-        let artists = Object.keys(artistCounts).filter((artist) => {
-            return artistCounts[artist] > 1;
-        });
-
-        let coverArts = Object.keys(coverArtCounts).filter((coverArt) => {
-            return coverArtCounts[coverArt] > 1;
-        });
-
-        // replace artist names with artist position in artistCounts array
-        cacheObject.trackItems = trackItems.map((track) => {
-            let artistIndex = artists.indexOf(track[2]);
-            if (artistIndex > -1) {
-                track[2] = artistIndex;
-            }
-
-            if (track[3] !== null) {
-                let coverArtIndex = coverArts.indexOf(track[3]);
-                if (coverArtIndex > -1) {
-                    track[3] = coverArtIndex;
-                }
-            }
-
-            return track;
-        }).flat();
-
-        cacheObject.artists = artists;
-        cacheObject.coverArts = coverArts;
-        return cacheObject;
-    }
-
-    this.decompressCache = (cacheObject) => {
-        // unflatten trackItems array
-        let trackItems = [];
-        for (let i = 0; i < cacheObject.trackItems.length; i += 4) {
-            trackItems.push(cacheObject.trackItems.slice(i, i + 4));
-        }
-
-        let artists = cacheObject.artists;
-        let coverArts = cacheObject.coverArts;
-
-        cacheObject.trackItems = trackItems.map((track) => {
-            if (!isNaN(track[2])) {
-                track[2] = artists[track[2]];
-            }
-
-            if (track[3] !== null) {
-                if (!isNaN(track[3])) {
-                    track[3] = coverArts[track[3]];
-                }
-                track[3] = track[3].replace(/^-/, 'https://lastfm.freetls.fastly.net/i/u/64s/').replace(/-$/g, '.jpg');
-            } else {
-                track[3] = null;
-            }
-
-            return {
-                'youtube': track[0],
-                'title': track[1],
-                'artist': track[2],
-                'coverArt': track[3]
-            };
-        });
-
-        return cacheObject;
-    }
-
 }
