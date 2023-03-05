@@ -50,13 +50,13 @@ class LastListMenu {
         menu.newEntry({ entryText: 'sep' });
 
         let trackButtonsArgs = [
-            ['Artist top tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
-            ['Artist random tracks', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
-            ['Artist radio', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_SIMILAR'],
-            ['Track Album', [['ARTIST', 'ALBUMARTIST'], ['ALBUM']], 'ALBUM_TRACKS'],
-            ['Genre & Style(s)', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
-            ['Folsonomy & Date(s)', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
-            ['Mood & Theme(s)', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
+            ['Artist Top', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_TRACKS'],
+            ['Artist Shuffle', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_RADIO'],
+            ['Similar Artists', ['ARTIST', 'ALBUMARTIST'], 'ARTIST_SIMILAR'],
+            ['Album', [['ARTIST', 'ALBUMARTIST'], ['ALBUM']], 'ALBUM_TRACKS'],
+            ['Genre & Style', ['GENRE', 'STYLE', 'ARTIST GENRE LAST.FM', 'ARTIST GENRE ALLMUSIC'], 'TAG_TRACKS'],
+            ['Folsonomy & Date', ['FOLKSONOMY', 'OCCASION', 'ALBUMOCCASION', 'DATE'], 'TAG_TRACKS'],
+            ['Mood & Theme', ['MOOD', 'THEME', 'ALBUMMOOD', 'ALBUM THEME ALLMUSIC', 'ALBUM MOOD ALLMUSIC'], 'TAG_TRACKS'],
         ];
 
         // Playing track Submenu
