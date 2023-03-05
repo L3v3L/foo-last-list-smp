@@ -1,8 +1,8 @@
 'use strict';
 
-include('scripts\\last_list.js');
+include('scripts\\LastList.js');
 include('scripts\\button.js');
-include('scripts\\last_list_menu.js');
+include('scripts\\LastListMenu.js');
 
 // check if cache folder exists and create it if not
 try {
@@ -27,11 +27,9 @@ https://www.foobar2000.org/components/view/foo_youtube
     window.SetProperty('show_popup', messageTimeStamp);
 }
 
-const lastList = new _lastList();
-
 // Button
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
-        _lastListMenu(lastList).btn_up(this.x, this.y + this.h)
+        LastListMenu.getMenu().btn_up(this.x, this.y + this.h)
     }),
 };
