@@ -27,11 +27,9 @@ https://www.foobar2000.org/components/view/foo_youtube
     window.SetProperty('show_popup', messageTimeStamp);
 }
 
-const lastList = new LastList();
-
 // Button
 const buttons = {
     LastListButton: new columnButton(buttonTemplate, 0, "Last List", function () {
-        LastListMenu.getMenu(lastList).btn_up(this.x, this.y + this.h)
+        LastListMenu.getMenu().btn_up(this.x, this.y + this.h)
     }),
 };

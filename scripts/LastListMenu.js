@@ -1,7 +1,7 @@
 'use strict';
 
 include('menu_xxx.js');
-include('LastListLastfm.js');
+include('LastListFactory.js');
 include('LastListFoobar.js');
 
 class LastListMenu {
@@ -23,13 +23,13 @@ class LastListMenu {
         }
 
         config.entryText += values[0];
-        config.runValues = LastListLastFM.buildUrl(funcType, [values[0]]);
+        config.runValues = LastListFactory.create(funcType, [values[0]]);
         config.flags = MF_STRING;
 
         return config;
     }
 
-    static getMenu(parent) {
+    static getMenu() {
         const menu = new _menu();
         // Get current selection and metadata
         menu.newEntry({ entryText: 'Search on Last.fm:', flags: MF_GRAYED });
@@ -54,7 +54,7 @@ class LastListMenu {
                     {
                         menuName: playingSubMenu,
                         entryText: config.entryText,
-                        func: () => { parent.run(config.runValues) },
+                        func: () => { (new LastList(config.runValues)).run() },
                         flags: config.flags
                     }
                 );
@@ -72,7 +72,7 @@ class LastListMenu {
                     {
                         menuName: selectedSubMenu,
                         entryText: config.entryText,
-                        func: () => { parent.run(config.runValues) },
+                        func: () => { (new LastList(config.runValues)).run() },
                         flags: config.flags
                     }
                 );
@@ -81,14 +81,14 @@ class LastListMenu {
 
         menu.newEntry({ entryText: 'sep' });
 
-        menu.newEntry({ entryText: 'Custom URL', func: () => { parent.run({}) } });
+        menu.newEntry({ entryText: 'Custom URL', func: () => { (new LastList()).run() } });
         let customUserSubMenu = menu.newMenu('Custom User');
         menu.newEntry({
             menuName: customUserSubMenu, entryText: 'Top Tracks', func: () => {
                 try {
                     let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
                     if (customValue) {
-                        parent.run(LastListLastFM.buildUrl('USER_LIBRARY', [customValue]));
+                        LastListFactory.create('USER_LIBRARY', [customValue]).run();
                     }
                 } catch (e) {
                 }
@@ -100,7 +100,7 @@ class LastListMenu {
                 try {
                     let customValue = utils.InputBox(window.ID, 'Last.fm Username', 'Enter Last.fm user', '');
                     if (customValue) {
-                        parent.run(LastListLastFM.buildUrl('USER_LOVED', [customValue]));
+                        LastListFactory.create('USER_LOVED', [customValue]).run();
                     }
                 } catch (e) {
                 }
@@ -113,7 +113,7 @@ class LastListMenu {
                 try {
                     let customValue = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
                     if (customValue) {
-                        parent.run(LastListLastFM.buildUrl('ARTIST_TRACKS', [customValue]));
+                        LastListFactory.create('ARTIST_TRACKS', [customValue]).run();
                     }
                 } catch (e) {
                 }
@@ -125,7 +125,7 @@ class LastListMenu {
                     let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
                     let customValueAlbum = utils.InputBox(window.ID, 'Last.fm Album', 'Enter Last.fm Album', '');
                     if (customValueArtist && customValueAlbum) {
-                        parent.run(LastListLastFM.buildUrl('ALBUM_TRACKS', [customValueArtist, customValueAlbum]));
+                        LastListFactory.create('ALBUM_TRACKS', [customValueArtist, customValueAlbum]).run();
                     }
                 } catch (e) {
                 }
@@ -137,7 +137,7 @@ class LastListMenu {
                 try {
                     let customValue = utils.InputBox(window.ID, 'Last.fm Tag', 'Enter Last.fm Tag', '');
                     if (customValue) {
-                        parent.run(LastListLastFM.buildUrl('TAG_TRACKS', [customValue]));
+                        LastListFactory.create('TAG_TRACKS', [customValue]).run();
                     }
                 } catch (e) {
                 }
@@ -146,11 +146,11 @@ class LastListMenu {
 
         menu.newEntry({ entryText: 'sep' });
         let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
-        menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { parent.run(LastListLastFM.buildUrl('TAG_TRACKS', [new Date().getFullYear().toString()])) } });
+        menu.newEntry({ menuName: lastFMGlobalSubMenu, entryText: 'Top tracks this year', func: () => { LastListFactory.create('TAG_TRACKS', [new Date().getFullYear().toString()]).run() } });
 
         menu.newEntry({
             menuName: lastFMGlobalSubMenu,
-            entryText: 'Top tracks previous year', func: () => { parent.run(LastListLastFM.buildUrl('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()])) }
+            entryText: 'Top tracks previous year', func: () => { LastListFactory.create('TAG_TRACKS', [(new Date().getFullYear() - 1).toString()]).run() }
         });
 
         // Last.fm Account Submenu
@@ -158,12 +158,12 @@ class LastListMenu {
         let lastFMAccountSubMenu;
         if (lastfm_username) {
             lastFMAccountSubMenu = menu.newMenu('Last.fm ' + lastfm_username);
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { parent.run(LastListLastFM.buildUrl('USER_LIBRARY', [lastfm_username])) } });
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { parent.run(LastListLastFM.buildUrl('USER_LOVED', [lastfm_username])) } });
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Radio', func: () => { parent.run(LastListLastFM.buildUrl('USER_RADIO', [lastfm_username])) } });
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Mix', func: () => { parent.run(LastListLastFM.buildUrl('USER_MIX', [lastfm_username])) } });
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Recommended', func: () => { parent.run(LastListLastFM.buildUrl('USER_RECOMMENDATIONS', [lastfm_username])) } });
-            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Neighbours', func: () => { parent.run(LastListLastFM.buildUrl('USER_NEIGHBOURS', [lastfm_username])) } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Top Tracks', func: () => { LastListFactory.create('USER_LIBRARY', [lastfm_username]).run() } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Loved', func: () => { LastListFactory.create('USER_LOVED', [lastfm_username]).run() } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Radio', func: () => { LastListFactory.create('USER_RADIO', [lastfm_username]).run() } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Mix', func: () => { LastListFactory.create('USER_MIX', [lastfm_username]).run() } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Recommended', func: () => { LastListFactory.create('USER_RECOMMENDATIONS', [lastfm_username]).run() } });
+            menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'My Neighbours', func: () => { LastListFactory.create('USER_NEIGHBOURS', [lastfm_username]).run() } });
             menu.newEntry({ menuName: lastFMAccountSubMenu, entryText: 'sep' });
         }
         menu.newEntry({
