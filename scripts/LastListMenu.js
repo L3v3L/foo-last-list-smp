@@ -157,6 +157,17 @@ class LastListMenu {
                 }
             }
         });
+        menu.newEntry({
+            menuName: customArtistSubMenu, entryText: 'Similar Artists', func: () => {
+                try {
+                    let customValueArtist = utils.InputBox(window.ID, 'Last.fm Artist', 'Enter Last.fm Artist', '');
+                    if (customValueArtist) {
+                        LastListFactory.create('ARTIST_SIMILAR', [customValueArtist]).run();
+                    }
+                } catch (e) {
+                }
+            }
+        });
 
         menu.newEntry({
             entryText: 'Custom Tag', func: () => {
