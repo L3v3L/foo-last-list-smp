@@ -70,8 +70,7 @@ class LastListMenu {
                     {
                         menuName: playingSubMenu,
                         entryText: config.entryText,
-                        func: () => { config.lastList.run() },
-                        flags: MF_STRING
+                        func: () => { config.lastList.run() }
                     }
                 );
 
@@ -93,8 +92,7 @@ class LastListMenu {
                     {
                         menuName: selectedSubMenu,
                         entryText: config.entryText,
-                        func: () => { config.lastList.run() },
-                        flags: MF_STRING
+                        func: () => { config.lastList.run() }
                     }
                 );
 
