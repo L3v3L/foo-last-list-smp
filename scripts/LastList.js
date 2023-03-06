@@ -183,8 +183,8 @@ class LastList {
 
                 xmlhttp.open("GET", urlToUse, true);
                 xmlhttp.onreadystatechange = () => {
-                    this.log(`Cached Not Used`);
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        this.log(`Cached Not Used`);
                         this.log(`searching page ${i}...`);
                         let content = xmlhttp.responseText;
                         // check if content is json
