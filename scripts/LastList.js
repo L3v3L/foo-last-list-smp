@@ -2,6 +2,7 @@
 
 include('InputError.js');
 include('LastListHelpers.js');
+include('LastListCache.js');
 
 class LastList {
     constructor({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 } = {}) {
