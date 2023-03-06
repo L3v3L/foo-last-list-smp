@@ -2,10 +2,10 @@
 
 include('InputError.js');
 include('LastListHelpers.js');
+include('LastListCache.js');
 
 class LastList {
     constructor({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 } = {}) {
-        this.cachedUrls = [];
         this.url = url;
         this.pages = pages;
         this.playlistName = playlistName;
@@ -16,9 +16,9 @@ class LastList {
         try {
             if (!this.url) {
                 try {
-                    this.url = utils.InputBox(0, "Enter the URL:", "Download", this.cachedUrls.length ? this.cachedUrls[0] : '', true);
+                    this.url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 if (!this.url) {
@@ -45,7 +45,7 @@ class LastList {
                 try {
                     this.pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 this.pages = parseInt(this.pages);
@@ -58,7 +58,7 @@ class LastList {
                 try {
                     this.playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'Last List', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 if (!this.playlistName) {
@@ -67,13 +67,6 @@ class LastList {
             }
 
             this.scrapeUrl(this.url, startPage, this.pages, this.playlistName, this.cacheTime);
-
-            // removes url from cache if it exists and slices the cache to 9 items
-            this.cachedUrls = this.cachedUrls.filter((cachedUrl) => {
-                return cachedUrl !== this.url;
-            }).slice(0, 9);
-            // add url to the beginning of the cache
-            this.cachedUrls.unshift(this.url);
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
@@ -182,8 +175,8 @@ class LastList {
 
                 xmlhttp.open("GET", urlToUse, true);
                 xmlhttp.onreadystatechange = () => {
-                    this.log(`Cached Not Used`);
                     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        this.log(`Cached Not Used`);
                         this.log(`searching page ${i}...`);
                         let content = xmlhttp.responseText;
                         // check if content is json
