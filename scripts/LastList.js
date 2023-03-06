@@ -6,7 +6,6 @@ include('LastListCache.js');
 
 class LastList {
     constructor({ url = '', pages = 1, playlistName = 'Last List', cacheTime = 86400000 } = {}) {
-        this.cachedUrls = [];
         this.url = url;
         this.pages = pages;
         this.playlistName = playlistName;
@@ -17,7 +16,7 @@ class LastList {
         try {
             if (!this.url) {
                 try {
-                    this.url = utils.InputBox(0, "Enter the URL:", "Download", this.cachedUrls.length ? this.cachedUrls[0] : '', true);
+                    this.url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
                 } catch (e) {
                     throw new InputError('Cancelled Input');
                 }
@@ -68,13 +67,6 @@ class LastList {
             }
 
             this.scrapeUrl(this.url, startPage, this.pages, this.playlistName, this.cacheTime);
-
-            // removes url from cache if it exists and slices the cache to 9 items
-            this.cachedUrls = this.cachedUrls.filter((cachedUrl) => {
-                return cachedUrl !== this.url;
-            }).slice(0, 9);
-            // add url to the beginning of the cache
-            this.cachedUrls.unshift(this.url);
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
