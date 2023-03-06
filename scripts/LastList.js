@@ -18,7 +18,7 @@ class LastList {
                 try {
                     this.url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 if (!this.url) {
@@ -45,7 +45,7 @@ class LastList {
                 try {
                     this.pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 this.pages = parseInt(this.pages);
@@ -58,7 +58,7 @@ class LastList {
                 try {
                     this.playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'Last List', true);
                 } catch (e) {
-                    throw new InputError('Cancelled Input');
+                    throw new InputError('Canceled Input');
                 }
 
                 if (!this.playlistName) {
