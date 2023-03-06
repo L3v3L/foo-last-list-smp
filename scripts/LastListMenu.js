@@ -119,7 +119,9 @@ class LastListMenu {
         menu = this.createQuestionButton(menu, customArtistSubMenu, 'Similar Artists', ['Enter Artist'], 'ARTIST_SIMILAR');
         menu = this.createQuestionButton(menu, customArtistSubMenu, 'Album', ['Enter Artist', 'Enter Album'], 'ALBUM_TRACKS');
 
-        menu = this.createQuestionButton(menu, 'main', 'Custom Tag', ['Enter Last.fm Tag'], 'TAG_TRACKS');
+        let customTagSubMenu = menu.newMenu('Custom Tag');
+        menu = this.createQuestionButton(menu, customTagSubMenu, 'Top Tracks', ['Enter Last.fm Tag'], 'TAG_TRACKS');
+        menu = this.createQuestionButton(menu, customTagSubMenu, 'Random Tracks', ['Enter Last.fm Tag'], 'TAG_RADIO');
 
         menu.newEntry({ entryText: 'sep' });
         let lastFMGlobalSubMenu = menu.newMenu('Last.fm Global');
