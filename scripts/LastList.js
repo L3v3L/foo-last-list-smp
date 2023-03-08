@@ -12,16 +12,16 @@ class LastList {
         this.cacheTime = cacheTime;
     }
 
-    run() {
-        try {
-            if (!this.url) {
+    run({ url = this.url, pages = this.pages, playlistName = this.playlistName, cacheTime = this.cacheTime } = {}) {
+        try { // In case an argument is set to null or '', the default value at constructor is used
+            if (!url) {
                 try {
-                    this.url = utils.InputBox(0, "Enter the URL:", "Download", '', true);
+                    url = utils.InputBox(0, "Enter the URL:", "Download", this.url, true);
                 } catch (e) {
                     throw new InputError('Canceled Input');
                 }
 
-                if (!this.url) {
+                if (!url) {
                     throw new InputError('No URL');
                 }
             }
@@ -29,7 +29,7 @@ class LastList {
             // if url has page as parameter, set directPage to true
             let regexPattern = /\/.*\?.*(page=(\d+))/gmi;
 
-            let matches = [...this.url.matchAll(regexPattern)];
+            let matches = [...url.matchAll(regexPattern)];
 
             let startPage = 1;
             if (matches.length > 0) {
@@ -38,35 +38,36 @@ class LastList {
                     startPage = 1;
                 }
 
-                this.url = this.url.replace(matches[0][1], "");
+                url = url.replace(matches[0][1], "");
             }
 
-            if (!this.pages || isNaN(this.pages) || this.pages < 1) {
+            if (!pages || isNaN(pages) || pages < 1) {
                 try {
-                    this.pages = utils.InputBox(0, "Enter the number of pages:", "Download", '1', true);
+                    pages = utils.InputBox(0, "Enter the number of pages:", "Download", this.pages, true);
                 } catch (e) {
                     throw new InputError('Canceled Input');
                 }
 
-                this.pages = parseInt(this.pages);
-                if (isNaN(this.pages) || this.pages < 1) {
-                    this.pages = 1;
+                pages = parseInt(pages);
+                if (isNaN(pages) || pages < 1) {
+                    pages = 1;
                 }
             }
 
-            if (!this.playlistName) {
+            if (!playlistName) {
                 try {
-                    this.playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", 'Last List', true);
+                    playlistName = utils.InputBox(0, "Enter the playlist name:", "Download", this.playlistName, true);
                 } catch (e) {
                     throw new InputError('Canceled Input');
                 }
 
-                if (!this.playlistName) {
+                if (!playlistName) {
                     throw new InputError('No playlist name');
                 }
             }
 
-            this.scrapeUrl(this.url, startPage, this.pages, this.playlistName, this.cacheTime);
+            this.scrapeUrl(url, startPage, pages, playlistName, cacheTime);
+            this.url = url; // Cache
         } catch (e) {
             if (e instanceof InputError) {
                 // do nothing
